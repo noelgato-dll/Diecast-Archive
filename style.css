@@ -116,3 +116,49 @@ body[data-view="compact"] .item.hasTags .itemTop{padding-right:min(var(--tag-spa
 
 /* v0.3.2: tag-aware faceted search */
 .searchFilters{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}.searchFilters:empty{display:none}.searchFilterChip{padding:7px 10px;border-color:#a3adba}.clearSearchBtn{padding:7px 10px;color:#a3adba}.tagSearchSuggestions{display:flex;flex-direction:column;gap:4px;margin:-10px 0 14px;padding:7px;border:1px solid #48515d;border-radius:9px;background:#20262d}.tagSearchSuggestions[hidden]{display:none}.tagSearchSuggestion{text-align:left;padding:9px 11px;background:transparent;border:0}.tagSearchSuggestion:hover,.tagSearchSuggestion:focus{background:#303943}
+
+/* v0.3.3: edit-mode selection and bulk actions */
+.bulkBar[hidden]{display:none!important}
+.bulkBar{border:1px solid #48515d;border-radius:10px;padding:10px;margin:8px 0 12px;background:#20262d}
+.bulkBarTop,.bulkBarActions{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.bulkBarTop{margin-bottom:8px}.bulkBarTop strong{margin-right:auto}
+.bulkBar button{min-height:36px;padding:7px 10px}
+.bulkCheckbox{width:20px;height:20px;margin:0 9px 0 0;vertical-align:middle;accent-color:#dce8f7;cursor:pointer}
+.item.bulkSelected{outline:2px solid #91afc8}
+.itemTop>div:first-child:has(.bulkCheckbox){display:flex;align-items:center;flex-wrap:wrap}
+#bulkTagDialog label,#mergeTagsDialog label,#bulkDeleteDialog label{display:block;margin:10px 0}
+#bulkTagDialog select,#mergeTagsDialog select,#bulkDeleteDialog input{display:block;width:100%;margin-top:6px}
+@media(max-width:520px){.bulkBarActions button{flex:1}.bulkBarTop button{font-size:.78rem}}
+
+/* v0.3.6 tag management */
+.tagManagerTools{display:flex;align-items:end;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:10px 0}
+.tagManagerTools label{display:flex;flex-direction:column;gap:5px;font-size:.85rem}
+.tagManagerTools select{max-width:230px}
+.tagManagerTools p{margin:0}
+.unusedTagTools{margin:12px 0;padding:10px;border:1px solid #39414b;border-radius:9px;overflow-wrap:anywhere}
+.unusedTagTools p{margin:0 0 8px}
+.unusedTagTools button:disabled{opacity:.45;cursor:not-allowed}
+
+/* v0.3.7 — compact catalogue sorting and restore choice */
+.catalogueMeta{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:4px 0 12px}
+.catalogueMeta #count{margin:0}.sortControl{display:flex;align-items:center;gap:7px;color:#a3adba;font-size:.8rem;font-family:'Courier New',Courier,monospace}
+.sortControl select{max-width:205px;min-height:40px;padding:7px 9px;border:1px solid #48515d;border-radius:8px;background:#242b33;color:#e9edf2;font-size:.82rem}
+.restoreOptions{border:1px solid #48515d;border-radius:10px;padding:12px;margin:12px 0}
+.restoreOptions label{display:block;padding:10px 2px;line-height:1.4}.restoreOptions label+label{border-top:1px solid #48515d}
+.restoreOptions input{vertical-align:middle;margin-right:8px}.restoreOptions small{display:block;color:#a3adba;padding-left:30px;margin-top:3px}
+#restoreOutcome{font-weight:bold;color:#b6d4b6}
+@media(max-width:440px){.catalogueMeta{align-items:flex-start}.sortControl{width:100%;justify-content:space-between}.sortControl select{flex:1;max-width:230px}}
+
+/* v0.3.7 final — compact sort button and popup */
+.sortControl{position:relative;display:block}
+.sortControl #catalogueSort[hidden],.sortMenu[hidden]{display:none!important}
+#sortMenuButton{min-height:40px;padding:8px 13px;border:1px solid #48515d;border-radius:8px;background:#242b33;color:#e9edf2;font-family:'Courier New',Courier,monospace;cursor:pointer}
+.sortMenu{position:absolute;right:0;top:calc(100% + 5px);width:min(255px,calc(100vw - 32px));max-height:min(65vh,440px);overflow-y:auto;z-index:40;padding:5px;background:#242b33;border:1px solid #48515d;border-radius:10px;box-shadow:0 12px 30px #0008}
+.sortMenuItem{display:block;width:100%;padding:10px;text-align:left;border:0;border-radius:6px;background:transparent;color:#e9edf2;font:inherit;cursor:pointer;white-space:normal}
+.sortMenuItem:hover,.sortMenuItem:focus-visible{background:#39414b;outline:2px solid transparent}
+.sortMenuItem[aria-pressed="true"]{color:#b6d4b6;font-weight:bold}
+@media(max-width:440px){.sortControl{width:auto}.catalogueMeta{align-items:center}}
+
+/* v0.3.7: icon-only sort control, consistent with Add and Settings. */
+#sortMenuButton.iconButton{width:44px;height:44px;min-width:44px;min-height:44px;padding:10px;display:inline-flex;align-items:center;justify-content:center}
+#sortMenuButton.iconButton svg{width:19px;height:19px}

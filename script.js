@@ -1,5 +1,10 @@
 'use strict';
 const KEY='diecast-archive-v1';
+const VIEW_KEY='diecast-archive-view-mode';
+let viewMode='detailed';
+try { viewMode=localStorage.getItem(VIEW_KEY)==='compact'?'compact':'detailed'; } catch (_) {}
+function applyViewMode(){document.body.dataset.view=viewMode;document.querySelectorAll('input[name="viewMode"]').forEach(el=>{el.checked=el.value===viewMode});}
+
 const NAMES=['brand','make','model','color','packaging','description'];
 const $=id=>document.getElementById(id);
 let records=[];let editingId=null;let pending=[];
@@ -35,3 +40,7 @@ $('deleteAllBtn').addEventListener('click',()=>{$('deleteAllMessage').textConten
 $('deleteAllText').addEventListener('input',()=>{$('confirmDeleteAll').disabled=$('deleteAllText').value!=='DELETE'});
 $('cancelDeleteAll').addEventListener('click',()=>$('deleteAllDialog').close());
 $('confirmDeleteAll').addEventListener('click',()=>{if($('deleteAllText').value!=='DELETE')return;const old=records;records=[];if(!save()){records=old;return}$('deleteAllDialog').close();status(`Deleted ${old.length} diecasts.`);render()});
+
+// View preference is separate from catalogue data and backups.
+document.querySelectorAll('input[name="viewMode"]').forEach(el=>el.addEventListener('change',()=>{if(!el.checked)return;viewMode=el.value==='compact'?'compact':'detailed';applyViewMode();try{localStorage.setItem(VIEW_KEY,viewMode)}catch(_){status('View preference could not be saved on this device.',true)}}));
+applyViewMode();

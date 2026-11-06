@@ -14,3 +14,58 @@ dialog{max-height:calc(100dvh - 32px);overscroll-behavior:contain}
 .toolbar .iconButton{width:44px;height:44px;padding:10px}
 .toolbar input[type=search]{min-width:0;width:100%}
 @media(max-width:420px){.toolbar{gap:6px;grid-template-columns:minmax(0,1fr) repeat(3,44px)}}
+
+/* v0.2.2 — compact original card: heading and actions share a row,
+   original six fields stay in a two-column, three-row grid. */
+.item{padding:12px 13px}
+.itemTop{display:flex;flex-direction:row;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px}
+.itemTop>div:first-child{min-width:0;flex:1}
+.model{line-height:1.3;overflow-wrap:anywhere}
+.itemTop .muted{margin:3px 0 0;line-height:1.3;overflow-wrap:anywhere}
+.itemActions{display:flex;flex:0 0 auto;align-self:flex-start;gap:5px;margin:0}
+.itemActions button{flex:0 0 44px;width:44px;height:44px;padding:10px}
+.details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:12px;row-gap:8px}
+.details>div{min-width:0;overflow-wrap:anywhere;line-height:1.3}
+.details .label{margin-bottom:2px}
+@media(max-width:520px){
+  .item{padding:11px 12px}
+  .itemTop{flex-direction:row;align-items:flex-start;margin-bottom:9px}
+  .itemActions{align-self:flex-start}
+  .itemActions button{flex:0 0 44px}
+  .details{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:10px;row-gap:7px}
+}
+@media(max-width:420px){
+  .itemTop{flex-direction:row}
+  .itemActions{align-self:flex-start}
+  .details{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+/* v0.2.2 density pass: preserve touch targets while reducing unused whitespace. */
+.shell{padding-top:max(16px,env(safe-area-inset-top));padding-bottom:max(24px,env(safe-area-inset-bottom) + 16px)}
+header .eyebrow{margin:0 0 3px}
+header h1{margin:0;line-height:1.14}
+header p:not(.eyebrow){margin:5px 0 10px;line-height:1.35}
+.toolbar{margin:10px 0 8px}
+#status:empty,#offlineInfo:empty{display:none}
+#status{min-height:0;margin:4px 0;line-height:1.3}
+#count,#offlineInfo{margin:5px 0;font-size:.68rem;line-height:1.3}
+.list{gap:7px}
+.item{padding:10px 11px}
+.itemTop{margin-bottom:7px}
+.itemTop .muted{margin:2px 0 0}
+.details{row-gap:6px;column-gap:10px}
+.details .label{margin-bottom:1px}
+.details>div{line-height:1.2}
+.dialogActions{margin:12px 0 0}
+dialog{padding:16px}
+#editorForm label{margin:8px 0}
+#preview p{padding:6px}
+.viewSettings{border:1px solid #48515d;border-radius:9px;margin:7px 0 14px;padding:8px 12px}
+.viewSettings legend{font-family:'Courier New',Courier,monospace;font-size:.8rem}
+.viewSettings label{display:flex;align-items:center;gap:8px;padding:7px 0;font-size:.87rem}
+.viewSettings input{accent-color:#dce8f7;width:18px;height:18px;margin:0;flex-shrink:0}
+/* Compact mode shows only model, brand/make, and edit/delete actions. */
+body[data-view="compact"] .item .details{display:none}
+body[data-view="compact"] .itemTop{margin-bottom:0;align-items:center}
+body[data-view="compact"] .item{padding:7px 10px}
+@media(max-width:520px){.item{padding:9px 10px}.itemTop{margin-bottom:6px}.details{row-gap:5px}.shell{padding-left:12px;padding-right:12px}dialog{padding:13px}}

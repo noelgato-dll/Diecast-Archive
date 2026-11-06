@@ -69,3 +69,50 @@ body[data-view="compact"] .item .details{display:none}
 body[data-view="compact"] .itemTop{margin-bottom:0;align-items:center}
 body[data-view="compact"] .item{padding:7px 10px}
 @media(max-width:520px){.item{padding:9px 10px}.itemTop{margin-bottom:6px}.details{row-gap:5px}.shell{padding-left:12px;padding-right:12px}dialog{padding:13px}}
+
+/* v0.2.3: archive editing is hidden during normal browsing. */
+.editingSettings{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px 0 15px}
+.editingSettings>div{min-width:0;flex:1}
+.editingSettings .muted{margin:4px 0 0;font-size:.8rem;line-height:1.3}
+.editingSettings button{min-width:85px;flex-shrink:0}
+#doneEditingBtn[hidden]{display:none!important}
+#doneEditingBtn{position:fixed;right:max(14px,env(safe-area-inset-right) + 14px);bottom:max(16px,env(safe-area-inset-bottom) + 16px);z-index:20;box-shadow:0 5px 20px #0009;border-radius:999px;min-width:88px;padding:10px 18px}
+body.archive-editing .shell{padding-bottom:max(105px,env(safe-area-inset-bottom) + 95px)}
+
+/* v0.3.1 — emoji-only tags, wrapped into available card space. */
+.item.hasTags{position:relative;--tag-space:50px}
+.item.hasTags .details>div:last-child{padding-right:min(var(--tag-space),48%)}
+body[data-view="compact"] .item.hasTags .itemTop{padding-right:min(var(--tag-space),48%)}
+.tagButton{position:absolute;right:7px;bottom:5px;display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:2px;max-width:46%;min-width:36px;min-height:36px;padding:5px;border:0;background:transparent;cursor:pointer;line-height:1.2}
+.tagEmoji{font-size:1rem;white-space:nowrap}
+.tagButton:focus-visible{outline:2px solid #e9edf2;border-radius:6px}
+.tagPanel[hidden]{display:none}
+.tagPanel{display:flex;flex-wrap:wrap;gap:6px;border-top:1px solid #38414b;margin-top:9px;padding-top:9px}
+.tagChip{min-height:34px;padding:6px 10px;font-size:.76rem;border-radius:8px}
+.item.tagsExpanded .tagPanel{margin-bottom:38px}
+.tagEditor{border:1px solid #48515d;border-radius:9px;margin:10px 0;padding:10px}
+.tagEditor legend{font-family:'Courier New',Courier,monospace;font-size:.8rem}
+.tagEditor .muted{font-size:.76rem;margin:2px 0 8px}
+.tagRows{display:flex;flex-direction:column;gap:6px}
+.tagEditRow{display:flex;align-items:center;gap:6px}
+.tagEditRow input{min-width:0;margin:0}
+.tagEmojiInput{width:68px;flex:0 0 68px;text-align:center}
+.tagLabelInput{flex:1}
+.tagRemove{width:36px;flex:0 0 36px;padding:5px}
+.addTagButton{margin-top:8px}
+
+/* v0.3.2: reusable tag library and add menu */
+.addChoices{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.addChoices button{min-height:52px}
+.tagPicker{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0}
+.tagChoice{display:inline-flex!important;align-items:center;gap:7px;padding:8px 10px;border:1px solid #48515d;border-radius:8px;margin:0!important;cursor:pointer;font-size:.82rem}
+.tagChoice input{width:17px;height:17px;accent-color:#dce8f7}
+.manageTagRow{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid #39414b}
+.manageTagInfo{min-width:0;flex:1;display:flex;flex-direction:column;gap:3px;overflow-wrap:anywhere}
+.manageTagInfo small{opacity:.7}
+.manageTagRow button{padding:8px;min-height:36px}
+#tagForm label{display:block;margin:10px 0}
+#tagForm input{display:block;width:100%;margin-top:5px}
+
+/* v0.3.2: tag-aware faceted search */
+.searchFilters{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0}.searchFilters:empty{display:none}.searchFilterChip{padding:7px 10px;border-color:#a3adba}.clearSearchBtn{padding:7px 10px;color:#a3adba}.tagSearchSuggestions{display:flex;flex-direction:column;gap:4px;margin:-10px 0 14px;padding:7px;border:1px solid #48515d;border-radius:9px;background:#20262d}.tagSearchSuggestions[hidden]{display:none}.tagSearchSuggestion{text-align:left;padding:9px 11px;background:transparent;border:0}.tagSearchSuggestion:hover,.tagSearchSuggestion:focus{background:#303943}

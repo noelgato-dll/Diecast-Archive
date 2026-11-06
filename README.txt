@@ -9,3 +9,8 @@ DIECAST ARCHIVE v0.2 — iPHONE EDITION
 7. Export a JSON backup to Files after importing, and periodically thereafter. iOS can clear website data; uninstalling the Home Screen app may delete stored data.
 8. GitHub Pages website is public, even though locally entered catalogue data is not uploaded to GitHub by this app.
 9. If you later change the website URL or hosting domain, the browser considers it a new storage location; restore from JSON backup.
+
+
+v0.2.1: Icon actions, settings with Delete All confirmation, and keep/skip duplicate import. Backup before upgrading.
+
+Revision: Add and Import Notes now use icon-only buttons in the main toolbar.

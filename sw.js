@@ -1,5 +1,5 @@
 // Cache only the app shell. Catalogue data stays in localStorage.
-const CACHE = 'diecast-archive-shell-v02';
+const CACHE = 'diecast-archive-shell-v021-icons';
 const FILES = ['./','./index.html','./style.css','./script.js','./manifest.webmanifest','./icons/icon-180.png','./icons/icon-192.png','./icons/icon-512.png'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('diecast-archive-shell-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()));});

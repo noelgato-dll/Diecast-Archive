@@ -5,3 +5,12 @@
 button{min-height:44px;touch-action:manipulation}input,textarea{font-size:16px}textarea{resize:vertical}button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #dce8f7;outline-offset:2px}
 dialog{max-height:calc(100dvh - 32px);overscroll-behavior:contain}
 @media(max-width:520px){.shell{padding-left:14px;padding-right:14px}.toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto}.toolbar input{min-width:0;width:100%}.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.actions button:first-child{grid-column:1/-1}.actions button{min-width:0}.itemTop{flex-direction:column}.itemActions{align-self:stretch}.itemActions button{flex:1}.details{grid-template-columns:repeat(2,minmax(0,1fr))}dialog{padding:16px;width:calc(100vw - 20px)}}
+
+/* v0.2.1 */
+.iconButton{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:10px;font-size:1.3rem}.iconButton svg{width:19px;height:19px}.itemActions button{flex:0 0 44px}.dangerIcon,.danger{color:#ffaaa9}.danger{border-color:#a94c4c;background:#3a2428}.settingsActions{display:grid;gap:10px}.settingsActions button{text-align:left}.settingsActions button,.settingsActions+.danger{width:100%}#duplicateOptions{border:1px solid #48515d;border-radius:9px;margin:12px 0;padding:12px}#duplicateOptions label{display:block;padding:8px 0}#duplicateOptions input{margin-right:8px}#importSummary{color:#b6d4b6}#deleteAllDialog label{display:block;margin:12px 0}#deleteAllText{width:100%;margin-top:6px}.toolbar{align-items:stretch}@media(max-width:520px){.toolbar{grid-template-columns:minmax(0,1fr) auto auto}.itemActions{align-self:flex-end}.itemActions button{flex:0 0 44px}}
+
+/* v0.2.1 icon-only toolbar: search, add, import, settings */
+.toolbar{display:grid;grid-template-columns:minmax(0,1fr) repeat(3,44px);gap:8px}
+.toolbar .iconButton{width:44px;height:44px;padding:10px}
+.toolbar input[type=search]{min-width:0;width:100%}
+@media(max-width:420px){.toolbar{gap:6px;grid-template-columns:minmax(0,1fr) repeat(3,44px)}}

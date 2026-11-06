@@ -159,6 +159,36 @@ body[data-view="compact"] .item.hasTags .itemTop{padding-right:min(var(--tag-spa
 .sortMenuItem[aria-pressed="true"]{color:#b6d4b6;font-weight:bold}
 @media(max-width:440px){.sortControl{width:auto}.catalogueMeta{align-items:center}}
 
-/* v0.3.7: icon-only sort control, consistent with Add and Settings. */
-#sortMenuButton.iconButton{width:44px;height:44px;min-width:44px;min-height:44px;padding:10px;display:inline-flex;align-items:center;justify-content:center}
-#sortMenuButton.iconButton svg{width:19px;height:19px}
+/* v0.3.8 — compact visual polish, without changing catalogue data */
+header .eyebrow{margin:0 0 2px;text-transform:none}
+header h1{margin:0;line-height:1.08}
+.shell{padding-top:max(12px,env(safe-area-inset-top));padding-bottom:max(20px,env(safe-area-inset-bottom) + 14px)}
+.toolbar{position:sticky;top:max(0px,env(safe-area-inset-top));z-index:30;background:#171b20;padding:5px 0;margin:4px 0 4px;isolation:isolate}
+.toolbar .iconButton{width:44px;height:44px;min-width:44px;min-height:44px;padding:10px;font-size:1.2rem}
+.toolbar .iconButton svg{width:19px;height:19px}
+.searchFilters{margin:4px 0 0}
+.catalogueMeta{margin:3px 0 7px}
+.list{gap:6px}
+.empty{padding:16px;font-family:'Courier New',Courier,monospace;font-size:.8rem}
+.settingsBody{display:flex;flex-direction:column;gap:7px}
+.settingsBody>h2{margin:0;line-height:1.15}
+.developerLink{display:inline-flex;align-items:center;gap:6px;width:fit-content;color:#a3adba;font:11px 'Courier New',Courier,monospace;text-decoration:none;overflow-wrap:anywhere}
+.developerLink:hover,.developerLink:focus-visible{text-decoration:underline;color:#e9edf2}
+.developerLink svg{width:13px;height:13px;flex:none}
+.settingsSection{border:1px solid #48515d;border-radius:9px;padding:9px 10px;margin:0;min-width:0}
+.settingsSection h3{font:700 .8rem 'Courier New',Courier,monospace;letter-spacing:.06em;margin:0 0 7px;color:#e9edf2}
+.settingsSection .viewSettings{border:0;padding:0;margin:0;min-width:0}
+.settingsSection .viewSettings legend{font:700 .8rem 'Courier New',Courier,monospace;letter-spacing:.06em;padding:0;margin:0 0 5px}
+.settingsSection .viewSettings label{padding:4px 0}
+.settingsSection .editingSettings{margin:0;gap:8px}
+.settingsSection .editingSettings .muted{margin:3px 0 0;font-size:.76rem}
+.settingsSection .settingsActions{gap:6px}
+.settingsSection .settingsActions button{text-align:left}
+.settingsSection #manageTagsBtn,.settingsSection #deleteAllBtn{width:100%;text-align:left}
+.settingsSection .muted{margin:5px 0 0;font-size:.76rem}
+.settingsBody>.dialogActions{margin:2px 0 0}
+@media(max-width:520px){.settingsSection{padding:8px}.settingsBody{gap:6px}}
+
+/* v0.3.8 fix — restore icon-only Sort button */
+#sortMenuButton.iconButton{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;min-width:44px;min-height:44px;padding:10px}
+#sortMenuButton.iconButton svg{display:block;width:19px;height:19px}

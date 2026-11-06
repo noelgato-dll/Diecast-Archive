@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#171b20">
+  <title>Diecast Archive</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+  <main class="shell">
+    <header><p class="eyebrow">PERSONAL CATALOGUE / V0.2</p><h1>DIECAST ARCHIVE</h1><p>Keep track of every model, without the endless scrolling.</p></header>
+    <div class="toolbar"><input id="search" type="search" placeholder="Search any field…" aria-label="Search diecasts"><button id="addBtn" class="primary">+ Add</button></div>
+    <div class="actions"><button id="importNotesBtn">Import Notes</button><button id="exportBtn">Export backup</button><button id="restoreBtn">Restore backup</button><input id="backupFile" type="file" accept="application/json,.json" hidden></div>
+    <p id="status" role="status" aria-live="polite"></p>
+    <p id="offlineInfo" class="eyebrow" aria-live="polite"></p>
+    <p id="count" class="eyebrow"></p>
+    <section id="list" class="list" aria-label="Catalogue"></section>
+  </main>
+  <dialog id="editor"><form id="editorForm"><h2 id="editorTitle">Add diecast</h2><div id="fields"></div><div class="dialogActions"><button type="button" id="cancelEdit">Cancel</button><button class="primary" type="submit">Save</button></div></form></dialog>
+  <dialog id="notesDialog"><div class="dialogBody"><h2>Import Apple Notes</h2><p>Paste your tab-separated tables. Each three rows represent one diecast.</p><textarea id="notesInput" rows="9" placeholder="Street Warrior\tPorsche\n993 RWB\tWhite\nLoose, no box\tDESCRIPTION"></textarea><button id="previewBtn" class="primary">Preview import</button><div id="preview"></div><div class="dialogActions"><button id="closeNotes">Cancel</button><button id="confirmImport" class="primary" disabled>Import records</button></div></div></dialog>
+</body>
+</html>

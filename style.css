@@ -192,3 +192,15 @@ header h1{margin:0;line-height:1.08}
 /* v0.3.8 fix — restore icon-only Sort button */
 #sortMenuButton.iconButton{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;min-width:44px;min-height:44px;padding:10px}
 #sortMenuButton.iconButton svg{display:block;width:19px;height:19px}
+
+/* v0.3.9 — compact multi-select tag dropdown in Add/Edit Diecast */
+.tagPickerDropdown{margin:5px 0 0;border:1px solid #48515d;border-radius:8px;background:#242a32;overflow:hidden}
+.tagPickerSummary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:42px;padding:8px 10px;cursor:pointer}
+.tagPickerSummary::-webkit-details-marker{display:none}
+.tagPickerSelected{display:flex;align-items:center;gap:9px;min-width:0;flex-wrap:wrap;font-size:.85rem}
+.tagPickerIcons{overflow-wrap:anywhere}.tagPickerCount,.tagPickerHint{color:#aab4c0;font-size:.78rem}
+.tagPickerChevron{color:#aab4c0;transition:transform .15s}.tagPickerDropdown[open] .tagPickerChevron{transform:rotate(180deg)}
+.tagPickerOptions{border-top:1px solid #48515d;max-height:220px;overflow:auto;padding:4px}
+.tagPickerOption{width:100%;min-height:38px;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;border:0;border-radius:5px;background:transparent;padding:7px 9px;margin:0;color:inherit;font:inherit}
+.tagPickerOption:hover,.tagPickerOption:focus-visible{background:#343d49}
+.tagPickerOptionName{min-width:0;overflow-wrap:anywhere;font-size:.84rem}.tagPickerCheck{flex:0 0 18px;text-align:center;color:#bce7bd;font-weight:bold}

@@ -9,12 +9,12 @@
   <link rel="apple-touch-icon" href="icons/icon-180.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="stylesheet" href="style.css">
-  <script src="script.js" defer></script>
+  <link rel="stylesheet" href="style.css?v=0310">
+  <script src="script.js?v=0310" defer></script>
 </head>
 <body>
   <main class="shell">
-    <header><p class="eyebrow">noelgato-dll / V0.3.9</p><h1>DIECAST ARCHIVE</h1></header>
+    <header><p class="eyebrow">noelgato-dll / V0.3.10</p><h1>DIECAST ARCHIVE</h1></header>
     <div id="searchFilters" class="searchFilters" aria-label="Selected keyword and tag filters"></div><div class="toolbar"><input id="search" type="search" placeholder="SEARCH" aria-label="Search diecasts"><button id="addBtn" class="primary iconButton" type="button" aria-label="Add" title="Add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button><button id="importNotesBtn" class="iconButton" type="button" aria-label="Import Apple Notes" title="Import Apple Notes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M12 11v7m-3-3 3 3 3-3"/></svg></button><button id="settingsBtn" class="iconButton" type="button" aria-label="Settings" title="Settings">⚙</button></div><div id="tagSearchSuggestions" class="tagSearchSuggestions" hidden aria-label="Matching tag suggestions"></div>
     <input id="backupFile" type="file" accept="application/json,.json" hidden>
     <p id="status" role="status" aria-live="polite"></p>
@@ -22,6 +22,7 @@
     <div class="catalogueMeta"><p id="count" class="eyebrow"></p><div class="sortControl"><button id="sortMenuButton" class="iconButton" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="sortMenu" aria-label="Sort diecasts" title="Sort diecasts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3v18m0 0-4-4m4 4 4-4M17 21V3m0 0-4 4m4-4 4 4"/></svg></button><div id="sortMenu" class="sortMenu" hidden role="group" aria-label="Sort diecasts"></div><select id="catalogueSort" hidden tabindex="-1" aria-hidden="true" aria-label="Sort diecast catalogue"><option value="default">Default order</option><option value="brand-asc">Brand A–Z</option><option value="brand-desc">Brand Z–A</option><option value="make-asc">Make A–Z</option><option value="make-desc">Make Z–A</option><option value="model-asc">Model A–Z</option><option value="model-desc">Model Z–A</option><option value="color-asc">Color A–Z</option><option value="color-desc">Color Z–A</option><option value="packaging-asc">Packaging A–Z</option><option value="packaging-desc">Packaging Z–A</option><option value="date-desc">Date added: Newest</option><option value="date-asc">Date added: Oldest</option></select></div></div>
     <div id="bulkBar" class="bulkBar" hidden><div class="bulkBarTop"><strong id="selectionCount">0 selected</strong><button id="selectVisible" type="button">Select all visible</button><button id="clearSelection" type="button">Deselect all</button></div><div class="bulkBarActions"><button id="bulkAdd" type="button">Add tag</button><button id="bulkRemove" type="button">Remove tag</button><button id="bulkDelete" class="danger" type="button">Delete selected</button></div></div>
     <section id="list" class="list" aria-label="Catalogue"></section>
+    <footer class="copyrightFooter" aria-label="Copyright notice"><span>© 2026 noelgato-dll. All rights reserved.</span><span>Source code is not licensed for reuse, modification, or redistribution.</span></footer>
   </main>
   <button id="doneEditingBtn" class="primary" type="button" hidden aria-label="Finish editing archive">✓ Done</button>
   <dialog id="addMenuDialog"><div class="dialogBody"><h2>Add</h2><div class="addChoices"><button id="addDiecastChoice" type="button">🚗 Diecast</button><button id="addTagChoice" type="button">🏷️ Tag</button></div><div class="dialogActions"><button id="closeAddMenu" type="button">Cancel</button></div></div></dialog>

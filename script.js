@@ -1,3 +1,4 @@
+/* Copyright © 2026 noelgato-dll. All rights reserved. Proprietary source code; see COPYRIGHT. */
 'use strict';
 const KEY='diecast-archive-v1';
 const VIEW_KEY='diecast-archive-view-mode';

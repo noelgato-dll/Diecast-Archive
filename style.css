@@ -356,3 +356,9 @@ body[data-view="compact"] .compactItemValue{
 .toolbar .searchField #search::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none}
 .toolbar .searchField #searchClear{position:absolute;right:5px;top:50%;transform:translateY(-50%);width:32px;height:32px;min-width:32px;min-height:32px;padding:0;display:grid;place-items:center;border:0;background:transparent;color:#a3adba;font:20px Arial,sans-serif;z-index:1}
 .toolbar .searchField #searchClear[hidden]{display:none!important}
+
+/* v0.4.1: tighten only the Currency caption-to-selector spacing. */
+.priceSettingsLine{row-gap:0}
+.priceSettingsLine .priceCurrencyCaption{margin:0 0 5px;line-height:1.2}
+.priceSettingsLine .currencyDisplayRow{margin:0}
+.priceSettingsLine .priceToggle{margin-top:15px}

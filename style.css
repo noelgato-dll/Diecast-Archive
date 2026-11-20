@@ -209,3 +209,139 @@ header h1{margin:0;line-height:1.08}
 /* v0.3.10 — compact copyright footer */
 .copyrightFooter{margin:24px 0 0;padding:12px 4px 0;border-top:1px solid rgba(148,163,184,.18);display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;color:#8893a2;font-family:'Courier New',Courier,monospace;font-size:10px;line-height:1.5;overflow-wrap:anywhere}
 @media(max-width:520px){.copyrightFooter{font-size:9px;margin-top:18px;padding-inline:3px}}
+
+/* DA v0.3.11 DEV Phase 1: responsive image and price layout */
+.countGroup{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.countGroup p{padding:8px 10px;border:1px solid #38414b;border-radius:9px;min-height:35px;display:flex;align-items:center}#valueCounter{font-size:.68rem}
+.item.withImage{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;position:relative;align-items:start}.withImage .photoColumn{min-width:0;display:flex;flex-direction:column;gap:7px}.withImage .diecastPhoto{width:100%;height:auto;aspect-ratio:4/3;object-fit:contain;background:#171b20;border-radius:9px;display:block}.withImage .photoColumn .itemTop{margin:0}.withImage .photoColumn .muted{margin:2px 0 0}.withImage .photoDetails{min-width:0}.withImage .details{grid-template-columns:minmax(0,1fr);gap:9px}.withImage .details>div{padding:0}.withImage .itemActions{grid-column:1/-1;justify-self:end}.copyBadge{display:inline-block;padding:2px 7px;border:1px solid #677584;border-radius:8px;font-size:.75rem;margin-top:5px}.pricePair{border-top:1px solid #39434d;padding-top:6px!important}.priceInputRow{display:grid;grid-template-columns:minmax(0,1fr) 105px;gap:10px;align-items:end}.priceInputRow select{width:100%;padding:11px 5px}.priceFields,.copyEditor{border:1px solid #48515d;border-radius:10px;margin:12px 0;padding:12px}.copyRow{display:flex;gap:8px;margin-top:7px}.copyRow button{flex:1;min-width:0}.priceSettingsLine{display:grid;gap:12px}.priceSettingsLine button{text-align:left}.priceToggle{display:flex;align-items:center;gap:8px}.currencyGrid{display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:10px}.currencyGrid label{display:grid;gap:5px;min-width:0;font-size:.8rem}.currencyGrid input,.currencyGrid select{width:100%;min-width:0}.copyForm label,#copyForm label{display:block;margin:10px 0}#copyForm input,#copyForm textarea,#copyForm select{display:block;width:100%;margin-top:5px}#copyForm input[type=checkbox]{display:inline;width:auto}
+@media(max-width:390px){.item.withImage{gap:9px}.withImage .diecastPhoto{aspect-ratio:1/1}.withImage .details{gap:7px}.countGroup{gap:5px}.countGroup p{padding:6px;font-size:.6rem}}
+
+/* DA DEV Phase 2 — header and overlay controls */
+.toolbar{grid-template-columns:minmax(0,1fr) repeat(2,44px)!important}
+.sortControl{display:flex;align-items:center;gap:7px;position:relative}
+#toggleEditingBtn{display:inline-flex;width:44px;height:44px;min-width:44px;min-height:44px;padding:10px}
+#toggleEditingBtn svg{width:19px;height:19px}
+#toggleEditingBtn[aria-pressed="true"]{background:#dce8f7;color:#17202b}
+.item{position:relative}
+.item .itemActions{position:absolute;top:8px;right:8px;z-index:5;display:flex;gap:5px;margin:0!important;grid-column:auto!important;justify-self:auto!important;align-self:auto!important}
+.item .itemActions button{width:40px;height:40px;min-width:40px;min-height:40px;flex:0 0 40px;padding:8px;background:#242b33ed;box-shadow:0 2px 8px #0008}
+.item .bulkCheckbox{position:absolute;top:9px;left:9px;z-index:6;width:19px;height:19px;margin:0;accent-color:#dce8f7;box-shadow:0 1px 6px #000a}
+body.archive-editing .item{padding-top:12px}
+body.archive-editing .item:not(.withImage) .itemTop{padding-left:27px;padding-right:92px}
+body.archive-editing .item.withImage .photoColumn{position:relative}
+body.archive-editing .item.withImage .photoDetails{padding-right:2px}
+body.archive-editing .item .tagButton{right:7px;bottom:5px;z-index:3}
+body.archive-editing .item .itemActions{top:8px;bottom:auto}
+.confirmSetting{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:.85rem}
+.confirmSetting strong{font:700 .7rem 'Courier New',monospace;margin-left:8px;color:#b6d4b6}
+.confirmSetting input{width:22px;height:22px;accent-color:#dce8f7}
+/* Image crop dialog */
+.cropShade{position:fixed;inset:0;z-index:200;background:#000c;display:flex;align-items:center;justify-content:center;padding:12px}
+.cropShade .modal{width:min(540px,96vw);max-height:95dvh;overflow:auto;background:#20262d;border:1px solid #48515d;border-radius:14px;padding:16px}
+.cropShade .row{display:flex;gap:8px}
+.cropShade .actions{display:flex;gap:8px;justify-content:flex-end}
+.cropSurface{position:relative;display:table;margin:10px auto;max-width:100%;touch-action:none;overflow:hidden}
+.cropSurface canvas{display:block;max-width:100%;max-height:48dvh}
+.cropSelection{position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px #0008;touch-action:none;cursor:move}
+.cropSelection i{position:absolute;width:20px;height:20px;background:#e8eef7;border:2px solid #1a2430;border-radius:3px;touch-action:none}
+.cropSelection [data-corner=tl]{top:-10px;left:-10px;cursor:nwse-resize}
+.cropSelection [data-corner=tr]{top:-10px;right:-10px;cursor:nesw-resize}
+.cropSelection [data-corner=bl]{bottom:-10px;left:-10px;cursor:nesw-resize}
+.cropSelection [data-corner=br]{bottom:-10px;right:-10px;cursor:nwse-resize}
+
+body.archive-editing .item:not(.withImage) .details{padding-right:0}
+
+/* DA v0.3.11 DEV Phase 3 */
+#valueCounter[hidden]{display:none!important}
+.catalogueMeta{display:flex;align-items:center;justify-content:flex-start;margin-bottom:6px}
+.sortControl{display:flex;justify-content:flex-start;align-items:center;width:max-content!important;margin:0 0 8px;position:relative;gap:7px}
+.sortMenu{left:0;right:auto;max-width:calc(100vw - 38px)}
+body[data-view="compact"] .item.withImage{display:block}
+body[data-view="compact"] .item .photoColumn,body[data-view="compact"] .item .diecastPhoto,body[data-view="compact"] .item .photoDetails{display:none!important}
+body[data-view="compact"] .item{min-height:0}
+.item.withImage .photoDetails{display:flex;flex-direction:column;justify-content:flex-end;min-height:100%;padding-bottom:20px}
+.item.withImage .photoDetails .details{margin-top:auto}
+.item.withImage .photoColumn{min-width:0}
+.item.withImage .photoColumn .muted{overflow-wrap:anywhere}
+.priceInputRow{display:block}.priceInputRow label{display:block}.priceInputRow input{width:100%}
+.priceSettingsLine{gap:16px}.currencyDisplayRow{display:grid;grid-template-columns:minmax(0,1fr) 48px;gap:8px;align-items:stretch}.currencyDisplay{display:flex;align-items:center;border:1px solid #48515d;border-radius:9px;background:#242b33;padding:12px;min-width:0;font: .82rem 'Courier New',monospace;overflow-wrap:anywhere}.currencyChangeIcon{display:flex;align-items:center;justify-content:center;padding:0;font-size:1.7rem;min-height:48px}
+.priceToggle{display:flex;justify-content:space-between;align-items:center;gap:8px;font: .83rem 'Courier New',monospace}.priceToggle strong{color:#83bd51}.priceToggle strong.disabled{color:#b8a6a6}.priceToggle input{appearance:none;position:relative;width:53px;height:29px;flex:0 0 53px;border-radius:8px;border:2px solid #5b6774;background:#444c55;cursor:pointer}.priceToggle input:checked{background:#70a73e;border-color:#70a73e}.priceToggle input:after{content:'';position:absolute;top:2px;left:2px;width:21px;height:21px;border:1px solid #17202b;border-radius:5px;background:#aeb8c2;transition:transform .12s}.priceToggle input:checked:after{transform:translateX(23px);background:#81bd50}
+#editor .dialogActions,#copyForm .dialogActions{justify-content:flex-end}#editor .dialogActions button,#copyForm .dialogActions button{width:44px;min-width:44px;height:44px;padding:0;font-size:1.25rem}
+.imageEditor{border:1px solid #48515d;border-radius:10px;margin:12px 0;padding:12px;min-width:0}.imageChoiceButtons{display:flex;gap:8px;flex-wrap:wrap}.imageChoiceButtons button{flex:1;min-width:110px}.savedImageInfo{color:#aeb8c2;font-size:.78rem;overflow-wrap:anywhere}.imageRemoveRow{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:9px}.imageRemoveRow[hidden]{display:none!important}.imageRemoveRow button{min-width:44px;min-height:42px}
+@media(max-width:440px){.sortControl{justify-content:flex-start!important}.sortMenu{left:0;right:auto}.currencyDisplay{font-size:.73rem}}
+
+/* DEV Phase 4: shared price row and stable catalogue layout */
+.catalogueHeaderRow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0 7px;min-width:0}
+.catalogueHeaderRow .catalogueMeta{margin:0;min-width:0;flex:1}
+.catalogueHeaderRow .sortControl{margin:0!important;flex:0 0 auto;display:flex;justify-content:flex-end!important;gap:7px}
+.catalogueHeaderRow .sortMenu{right:0;left:auto;width:min(255px,calc(100vw - 32px))}
+.valueCounterRow{margin:0 0 7px}.valueCounterRow:has(#valueCounter[hidden]){display:none}
+.valueCounterRow #valueCounter{display:inline-flex;margin:0;padding:8px 10px;border:1px solid #38414b;border-radius:9px;font-size:.68rem}
+.item.withImage{align-items:start;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.item.withImage .photoDetails{min-height:0!important;padding-bottom:0!important;justify-content:flex-end}
+.item.withImage .photoDetails .details{margin-top:0}
+.item.withImage .cardPricing{grid-column:1/-1}
+.cardPricing{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:5px;min-width:0}
+.cardPricing .pricePair{min-width:0;overflow-wrap:anywhere}
+body[data-view="compact"] .item.withImage{display:block}
+body[data-view="compact"] .item .cardPricing{display:none!important}
+body[data-view="compact"] .item .photoColumn,body[data-view="compact"] .item .photoDetails{display:none!important}
+@media(max-width:440px){.catalogueHeaderRow .sortControl{justify-content:flex-end!important}.catalogueHeaderRow .sortMenu{right:0;left:auto}}
+
+/* DA v0.3.11 DEV Phase 5: consistent editor fieldsets and icon-only controls */
+#editorForm .tagEditor,#editorForm .priceFields,#editorForm .imageEditor{border:1px solid #48515d;border-radius:10px;margin:12px 0;padding:12px;min-width:0}
+#editorForm .tagEditor legend,#editorForm .priceFields legend,#editorForm .imageEditor legend{font-family:'Courier New',Courier,monospace;font-size:.8rem;font-weight:normal;padding:0 4px}
+#editorForm .tagEditor .tagPickerDropdown{margin:0}
+#editorForm .priceFields .priceInputRow:first-of-type label{margin-top:0}
+.imageChoiceButtons,.copyImageControls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.imageChoiceButtons .imageIconButton,.copyImageControls .imageIconButton{display:inline-flex;align-items:center;justify-content:center;flex:0 0 44px;min-width:44px;width:44px;height:44px;padding:0;font-size:1.4rem}
+.imageEditor input[type=file][hidden],.copyImageControls input[type=file][hidden]{display:none!important}
+.imageRemoveRow{justify-content:flex-end}.imageRemoveRow button{width:44px;height:44px;padding:0}
+.countGroup p,.valueCounterRow #valueCounter{height:44px;min-height:44px;display:inline-flex;align-items:center;padding:0 10px}
+.dialogActions{justify-content:flex-end}
+.dialogActions button:is([aria-label="Cancel"],[aria-label="Save tag"],[aria-label="Apply"],[aria-label="Apply tag"],[aria-label="Merge tags"],[aria-label="Import records"]),#closeNotes,#cancelDeleteAll,#cancelBulkDelete,#cancelRestore{display:inline-flex;align-items:center;justify-content:center;width:44px;min-width:44px;height:44px;padding:0;font-size:1.25rem}
+
+/* DEV Phase 6: uniform tracker state and value-mode control */
+.priceTrackerText{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0}
+.priceToggle{align-items:center}
+.valueCounterRow{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.valueCounterRow:has(#valueCounter[hidden]){display:none!important}
+.valueCounterRow #valueModeToggle{width:44px;height:44px;min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:10px}
+.valueCounterRow #valueModeToggle[hidden]{display:none!important}
+.imageIconButton svg,.imageRemoveRow button svg{width:21px;height:21px;display:block}
+.imageIconButton{display:inline-flex;align-items:center;justify-content:center}
+
+/* Phase 7: subtle border on all catalogue photographs. */
+.diecastPhoto{border:1px solid #667585;box-sizing:border-box;}
+
+/* DEV Phase 9 — compact value aligned above the tag, without changing card height */
+body[data-view="compact"] .item{position:relative;padding-right:105px}
+body[data-view="compact"] .itemTop{padding-right:0!important}
+body[data-view="compact"] .compactItemValue{position:absolute;right:12px;top:9px;max-width:96px;text-align:right;font-family:'Courier New',Courier,monospace;font-weight:bold;font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body[data-view="compact"] .item .tagButton{right:10px;bottom:8px}
+.priceCurrencyCaption{font-family:'Courier New',Courier,monospace;font-size:.86rem}
+.priceTrackerText{flex-direction:row;align-items:center;gap:10px;flex-wrap:wrap}
+.priceToggle{margin-top:7px}
+
+/* DEV Phase 10: compact prices must never show a misleading ellipsis. */
+body[data-view="compact"] .item{padding-right:clamp(105px, 36%, 190px)}
+body[data-view="compact"] .compactItemValue{
+  max-width:calc(100% - 24px);width:max-content;min-width:0;
+  overflow:visible;text-overflow:clip;white-space:normal;overflow-wrap:anywhere;
+  line-height:1.2;z-index:2;
+}
+/* DEV Phase 10: image controls share one 44px-high row. */
+.imageEditor .imageChoiceButtons{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
+.imageEditor .imageChoiceButtons>.imageIconButton{flex:0 0 44px;min-width:44px;width:44px;height:44px;padding:0}
+.imageEditor .imageChoiceButtons>.imageRemoveRow{margin:0 0 0 auto;display:flex;align-items:center;justify-content:center;flex:0 0 44px;width:44px;height:44px}
+.imageEditor .imageChoiceButtons>.imageRemoveRow[hidden]{display:none!important}
+.imageEditor .imageChoiceButtons>.imageRemoveRow>button{width:44px;height:44px;min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0}
+/* DEV Phase 10: equal bulk-action buttons, independent of label wrapping. */
+.bulkBarActions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.bulkBarActions button{width:100%;min-width:0;height:44px;min-height:44px;padding:4px 5px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.15;overflow-wrap:normal}
+.bulkBarTop button{height:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+@media(max-width:520px){.bulkBarActions button{flex:initial}}
+
+/* Phase 11: emphasize monetary figures without enlarging the counter. */
+.valueCounterRow #valueCounter{gap:5px;white-space:nowrap}
+.valueCounterRow #valueCounter .valueCounterLabel{font-size:inherit;font-weight:normal}
+.valueCounterRow #valueCounter .valueCounterAmount,.valueCounterRow #valueCounter .valueCounterEstimate{font-family:"Courier New",Courier,monospace;font-size:calc(1em + 1px);font-weight:700;font-variant-numeric:tabular-nums}

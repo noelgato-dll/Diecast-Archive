@@ -1,9 +1,30 @@
+
+const PHOTO_LIBRARY_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>';
+const CAMERA_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h-4L8 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-4l-2-3Z"/><circle cx="12" cy="13" r="3"/></svg>';
+const TRASH_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m5 4v7m4-7v7"/></svg>';
+let valueDisplayMode='acquired';
+try { valueDisplayMode=localStorage.getItem('da-value-display-mode')==='market'?'market':'acquired'; } catch(_) {}
+let pendingCroppedImage=null;
 /* Copyright © 2026 noelgato-dll. All rights reserved. Proprietary source code; see COPYRIGHT. */
 'use strict';
 const KEY='diecast-archive-v1';
 const VIEW_KEY='diecast-archive-view-mode';
 const TAG_KEY='diecast-archive-tag-registry-v1';
 const SORT_KEY='diecast-archive-sort-v1';
+const PRICE_KEY='diecast-archive-price-settings-v1';
+const CURRENCIES={PHP:'₱',USD:'$',EUR:'€',JPY:'¥',GBP:'£',CAD:'C$',AUD:'A$',SGD:'S$',KRW:'₩',CNY:'¥'};
+let priceSettings={currency:'PHP',enabled:true,rates:{}};
+try{const p=JSON.parse(localStorage.getItem(PRICE_KEY)||'null');if(p&&CURRENCIES[p.currency])priceSettings={currency:p.currency,enabled:p.enabled!==false,rates:p.rates||{}}}catch(_){}
+function priceSave(){try{localStorage.setItem(PRICE_KEY,JSON.stringify(priceSettings));return true}catch(_){status('Could not save currency settings.',true);return false}}
+function numericPrice(value){return value===null||value===undefined||value===''?null:Number.isFinite(Number(value))&&Number(value)>=0?Math.round(Number(value)*100)/100:null}
+function money(value,currency){return `${CURRENCIES[currency]||currency} ${Number(value).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`}
+function exchange(value,source,target=priceSettings.currency){if(value===null||value===undefined)return null;if(source===target)return value;const rate=priceSettings.rates[`${source}_${target}`];return Number.isFinite(rate)&&rate>0?value*rate:null}
+function copiesOf(record){return Array.isArray(record.copies)?record.copies:[]}
+function qty(record){return 1+copiesOf(record).length}
+function allCopies(record){return [record,...copiesOf(record)]}
+function valueTotal(items,field){let sum=0,missing=0,unconverted=0;for(const r of items)for(const copy of allCopies(r)){const price=numericPrice(copy[field]);if(price===null){missing++;continue}const converted=exchange(price,copy[field+'Currency']||'PHP');if(converted===null){unconverted++;continue}sum+=converted}return {sum,missing,unconverted}}
+function priceSummary(items){const ac=valueTotal(items,'priceAcquired'),mv=valueTotal(items,'marketValue');const shown=items.reduce((n,r)=>n+qty(r),0);return {shown,ac,mv}}
+
 let viewMode='detailed';
 try { viewMode=localStorage.getItem(VIEW_KEY)==='compact'?'compact':'detailed'; } catch (_) {}
 function applyViewMode(){document.body.dataset.view=viewMode;document.querySelectorAll('input[name="viewMode"]').forEach(el=>{el.checked=el.value===viewMode});}
@@ -40,11 +61,15 @@ const $=id=>document.getElementById(id);
 let records=[];let editingId=null;let pending=[];
 // Editing is session-only: it starts disabled on every fresh page load.
 let archiveEditing=false;
+const CONFIRM_KEY='diecast-archive-confirmations-v1';
+let requireConfirmations=true;try{requireConfirmations=localStorage.getItem(CONFIRM_KEY)!=='false'}catch(_){}
+function routineConfirm(message){return !requireConfirmations||window.confirm(message)}
+function syncConfirmUI(){const cb=$('actionConfirmations');if(cb)cb.checked=requireConfirmations;const label=$('confirmStatus');if(label)label.textContent=requireConfirmations?'ENABLED':'DISABLED'}
 const selectedIds=new Set();let bulkTagMode='add';let busy=false;
-function setArchiveEditing(enabled){if(!enabled)selectedIds.clear();archiveEditing=!!enabled;document.body.classList.toggle('archive-editing',archiveEditing);$('doneEditingBtn').hidden=!archiveEditing;$('toggleEditingBtn').textContent=archiveEditing?'Disable':'Enable';$('toggleEditingBtn').setAttribute('aria-pressed',String(archiveEditing));render();}
+function setArchiveEditing(enabled){if(!enabled)selectedIds.clear();archiveEditing=!!enabled;document.body.classList.toggle('archive-editing',archiveEditing);$('doneEditingBtn').hidden=!archiveEditing;$('toggleEditingBtn').setAttribute('aria-label',archiveEditing?'Disable archive editing':'Enable archive editing');$('toggleEditingBtn').title=archiveEditing?'Disable archive editing':'Enable archive editing';$('toggleEditingBtn').setAttribute('aria-pressed',String(archiveEditing));render();}
 function uid(){return globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`}
 function validRecord(obj){return obj && typeof obj==='object' && NAMES.every(k=>typeof obj[k]==='string')}
-function normalize(obj){return {id:uid(),...Object.fromEntries(NAMES.map(k=>[k,obj[k]])),tags:tagsFor(obj),...(typeof obj.createdAt==='string'&&Number.isFinite(Date.parse(obj.createdAt))?{createdAt:obj.createdAt}:{})}}
+function normalize(obj){return {id:uid(),...Object.fromEntries(NAMES.map(k=>[k,obj[k]])),copies:copiesOf(obj).map(c=>({...c,id:uid()})),image:obj.image||null,priceAcquired:numericPrice(obj.priceAcquired),priceAcquiredCurrency:obj.priceAcquiredCurrency||'PHP',marketValue:numericPrice(obj.marketValue),marketValueCurrency:obj.marketValueCurrency||'PHP',tags:tagsFor(obj),...(typeof obj.createdAt==='string'&&Number.isFinite(Date.parse(obj.createdAt))?{createdAt:obj.createdAt}:{})}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(records));return true}catch(err){status('Unable to save. Storage may be full or disabled.',true);return false}}
 function status(message,error=false){$('status').textContent=message;$('status').className=error?'error':''}
 function node(tag,cls,text){const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el}
@@ -78,7 +103,7 @@ function renderSearchFilters(){
 }
 function recordMatchesSearch(record,query){
  const tags=tagsFor(record);
- const fields=[...NAMES.map(k=>record[k].toLocaleLowerCase()),...tags.map(t=>t.label.toLocaleLowerCase())];
+ const fields=[...NAMES.map(k=>String(record[k]??'').toLocaleLowerCase()),...tags.map(t=>t.label.toLocaleLowerCase())];
  const words=[...selectedSearchKeywords.map(k=>k.toLocaleLowerCase()),...(query?[query]:[])];
  return words.every(word=>fields.some(field=>field.includes(word)))&&selectedSearchTags.every(key=>tags.some(tag=>tagKey(tag.label)===key));
 }
@@ -100,7 +125,17 @@ function sortMatches(items){
  });
  return indexed.map(x=>x.record);
 }
-function render(){for(const id of selectedIds)if(!records.some(r=>r.id===id))selectedIds.delete(id);selectedSearchTags=selectedSearchTags.filter(k=>knownTags().some(t=>tagKey(t.label)===k));renderSearchFilters();const query=$('search').value.trim().toLocaleLowerCase();const matches=sortMatches(records.filter(r=>recordMatchesSearch(r,query)));$('count').textContent=`${matches.length} SHOWN / ${records.length} TOTAL`;updateBulkBar(matches);$('list').replaceChildren();if(!matches.length){$('list').append(node('div','empty',records.length?'NO MATCHES':'NO DIECASTS YET'));return}for(const r of matches){const card=node('article','item'),top=node('div','itemTop'),head=node('div');head.append(node('h3','model',r.model||'(Unnamed model)'),node('p','muted',`${r.brand} · ${r.make}`));const actions=node('div','itemActions');if(archiveEditing){const select=node('input','bulkCheckbox');select.type='checkbox';select.checked=selectedIds.has(r.id);select.setAttribute('aria-label',`Select ${r.model||'diecast'}`);select.addEventListener('change',()=>{if(select.checked)selectedIds.add(r.id);else selectedIds.delete(r.id);updateBulkBar();card.classList.toggle('bulkSelected',select.checked)});head.prepend(select);card.classList.toggle('bulkSelected',select.checked)}const edit=node('button','iconButton',''),del=node('button','iconButton','');edit.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4Z"/></svg>';del.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m5 4v7m4-7v7"/></svg>';edit.setAttribute('aria-label',`Edit ${r.model}`);del.setAttribute('aria-label',`Delete ${r.model}`);edit.title='Edit';del.title='Delete';del.classList.add('dangerIcon');edit.type=del.type='button';edit.addEventListener('click',()=>openEditor(r.id));del.addEventListener('click',()=>{if(!confirm(`Delete ${r.model||'this diecast'}?`))return;const old=records;records=records.filter(x=>x.id!==r.id);if(!save())records=old;else{selectedIds.delete(r.id);status('Diecast deleted.');render()}});if(archiveEditing)actions.append(edit,del);top.append(head);if(archiveEditing)top.append(actions);const details=node('div','details');for(const k of NAMES){const pair=node('div');pair.append(node('span','label',k),node('span','',r[k]||'—'));details.append(pair)}card.append(top,details);
+function render(){for(const id of selectedIds)if(!records.some(r=>r.id===id))selectedIds.delete(id);selectedSearchTags=selectedSearchTags.filter(k=>knownTags().some(t=>tagKey(t.label)===k));renderSearchFilters();const query=$('search').value.trim().toLocaleLowerCase();const matches=sortMatches(records.filter(r=>recordMatchesSearch(r,query)));const shown=matches.reduce((n,r)=>n+qty(r),0),total=records.reduce((n,r)=>n+qty(r),0);$('count').textContent=`${shown} SHOWN / ${total} TOTAL`;updateValueCounter();updateBulkBar(matches);$('list').replaceChildren();if(!matches.length){$('list').append(node('div','empty',records.length?'NO MATCHES':'NO DIECASTS YET'));return}for(const r of matches){try{const card=node('article','item'),top=node('div','itemTop'),head=node('div');head.append(node('h3','model',r.model||'(Unnamed model)'),node('p','muted',`${r.brand} · ${r.make}`));if(qty(r)>1)head.append(node('span','copyBadge',`×${qty(r)}`));const actions=node('div','itemActions');if(archiveEditing){const select=node('input','bulkCheckbox');select.type='checkbox';select.checked=selectedIds.has(r.id);select.setAttribute('aria-label',`Select ${r.model||'diecast'}`);select.addEventListener('change',()=>{if(select.checked)selectedIds.add(r.id);else selectedIds.delete(r.id);updateBulkBar();card.classList.toggle('bulkSelected',select.checked)});card.append(select);card.classList.toggle('bulkSelected',select.checked)}const edit=node('button','iconButton',''),del=node('button','iconButton','');edit.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4Z"/></svg>';del.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m5 4v7m4-7v7"/></svg>';edit.setAttribute('aria-label',`Edit ${r.model}`);del.setAttribute('aria-label',`Delete ${r.model}`);edit.title='Edit';del.title='Delete';del.classList.add('dangerIcon');edit.type=del.type='button';edit.addEventListener('click',()=>openEditor(r.id));del.addEventListener('click',()=>{if(!routineConfirm(`Delete ${r.model||'this diecast'}?`))return;const old=records;records=records.filter(x=>x.id!==r.id);if(!save())records=old;else{selectedIds.delete(r.id);status('Diecast deleted.');render()}});if(archiveEditing)actions.append(edit,del);top.append(head);if(archiveEditing)card.append(actions);const details=node('div','details');const pricing=node('div','cardPricing');for(const k of (r.image&&viewMode!=='compact'?['packaging','color','description']:NAMES)){const pair=node('div');pair.append(node('span','label',k),node('span','',r[k]||'—'));details.append(pair)}
+if(priceSettings.enabled){for(const [field,title] of [['priceAcquired','PRICE ACQUIRED'],['marketValue','MARKET VALUE']]){const pair=node('div','pricePair');const v=numericPrice(r[field]);const converted=v===null?null:exchange(v,r[field+'Currency']||'PHP');pair.append(node('span','label',title),node('span','',v===null?'—':converted===null?'Rate needed':money(converted,priceSettings.currency)));pricing.append(pair)}}
+if(r.image&&viewMode!=='compact'){card.classList.add('withImage');const photo=node('div','photoColumn');const img=node('img','diecastPhoto');img.src=r.image;img.alt=`${r.model} photograph`;img.loading='lazy';photo.append(img,head);const body=node('div','photoDetails');body.append(details);card.append(photo,body);if(priceSettings.enabled)card.append(pricing);}else {card.append(top,details);if(priceSettings.enabled)card.append(pricing);}
+if(viewMode==='compact'&&priceSettings.enabled){
+  const field=valueDisplayMode==='market'?'marketValue':'priceAcquired';
+  const copies=[r,...copiesOf(r)];let sum=0,missing=0,unconverted=0;
+  for(const copy of copies){const v=numericPrice(copy[field]);if(v===null){missing++;continue}const converted=exchange(v,copy[field+'Currency']||'PHP');if(converted===null){unconverted++;continue}sum+=converted}
+  const value=node('span','compactItemValue',unconverted?'Rate needed':missing===copies.length?'—':money(sum,priceSettings.currency)+(valueDisplayMode==='market'?' *':''));
+  value.title=`${valueDisplayMode==='market'?'Estimated market value':'Acquisition price'}${copies.length>1?' · '+copies.length+' copies':''}${missing?' · '+missing+' missing':''}${unconverted?' · '+unconverted+' missing rates':''}`;
+  card.append(value);
+}
 const tags=canonicalTags(tagsFor(r));
 if(tags.length){
   card.classList.add('hasTags');
@@ -129,8 +164,8 @@ if(tags.length){
   };
   requestAnimationFrame(syncSpace);
 }
-$('list').append(card)}}
-function openEditor(id=null){editingId=id;const current=records.find(r=>r.id===id);$('editorTitle').textContent=current?'Edit diecast':'Add diecast';$('fields').replaceChildren();for(const k of NAMES){const label=node('label','',k[0].toUpperCase()+k.slice(1));const field=k==='description'?document.createElement('textarea'):document.createElement('input');field.name=k;field.value=current?.[k]||'';if(k==='model')field.required=true;label.append(field);$('fields').append(label)}const section=node('fieldset','tagEditor');section.append(node('legend','','Assign tags'));
+$('list').append(card)}catch(error){console.error('Could not render diecast entry',r?.id,error);const fallback=node('article','item');fallback.append(node('h3','model',String(r?.model||'(Unnamed model)')),node('p','muted',`${r?.brand||''} · ${r?.make||''}`));$('list').append(fallback)}}}
+function openEditor(id=null){editingId=id;const current=records.find(r=>r.id===id);editingCopyIndex=-1;$('editorTitle').textContent=current?'Edit diecast':'Add diecast';$('fields').replaceChildren();for(const k of NAMES){const label=node('label','',k[0].toUpperCase()+k.slice(1));const field=k==='description'?document.createElement('textarea'):document.createElement('input');field.name=k;field.value=current?.[k]||'';if(k==='model')field.required=true;label.append(field);$('fields').append(label)}const section=node('fieldset','tagEditor');section.append(node('legend','','Assign tags'));
 const picker=document.createElement('details');picker.className='tagPickerDropdown';
 const summary=document.createElement('summary');summary.className='tagPickerSummary';
 const summaryText=node('span','tagPickerSelected');summary.append(summaryText,node('span','tagPickerChevron','▾'));picker.append(summary);
@@ -139,9 +174,38 @@ const assigned=new Set(tagsFor(current||{}).map(t=>tagKey(t.label)));
 function updateTagSummary(){const chosen=knownTags().filter(t=>assigned.has(tagKey(t.label)));summaryText.replaceChildren();if(chosen.length){const icons=node('span','tagPickerIcons',chosen.map(t=>t.emoji).join(' '));summaryText.append(icons,node('span','tagPickerCount',`${chosen.length} selected`))}else summaryText.append(node('span','tagPickerHint','Select tags'))}
 function drawPicker(){options.replaceChildren();const tags=knownTags();if(!tags.length)options.append(node('p','muted','No tags yet. Use + → Tag to create one.'));for(const tag of tags){const choice=document.createElement('button');choice.type='button';choice.className='tagPickerOption';choice.dataset.tagKey=tagKey(tag.label);choice.setAttribute('aria-pressed',String(assigned.has(tagKey(tag.label))));const text=node('span','tagPickerOptionName',`${tag.emoji} ${tag.label}`);const check=node('span','tagPickerCheck',assigned.has(tagKey(tag.label))?'✓':'');choice.append(text,check);choice.addEventListener('click',()=>{const key=tagKey(tag.label);if(assigned.has(key))assigned.delete(key);else assigned.add(key);choice.setAttribute('aria-pressed',String(assigned.has(key)));check.textContent=assigned.has(key)?'✓':'';updateTagSummary()});options.append(choice)}updateTagSummary()}
 drawPicker();section.append(picker);$('fields').append(section);
+const prices=node('fieldset','priceFields');prices.append(node('legend','','PRICE & VALUE'));for(const [key,title] of [['priceAcquired','Price acquired'],['marketValue','Market value']]){const wrap=node('div','priceInputRow');const label=node('label','',title);const input=node('input');input.name=key;input.type='number';input.step='0.01';input.min='0';input.placeholder='Optional';input.value=current?.[key]??'';label.append(input);const currency=node('input');currency.type='hidden';currency.name=key+'Currency';currency.value=current?.[key+'Currency']||priceSettings.currency;wrap.append(label,currency);prices.append(wrap)}$('fields').append(prices);
+pendingCroppedImage=null;let removeMainImage=false;
+const imageArea=node('fieldset','imageEditor');imageArea.append(node('legend','','DIECAST IMAGE'));
+const imageButtons=node('div','imageChoiceButtons');
+const imageInput=node('input');imageInput.type='file';imageInput.accept='image/*';imageInput.id='diecastImageInput';imageInput.hidden=true;
+const cameraInput=node('input');cameraInput.type='file';cameraInput.accept='image/*';cameraInput.capture='environment';cameraInput.hidden=true;
+const savedInfo=node('p','savedImageInfo',current?.image?`Saved image${current.imageFilename?' · '+current.imageFilename:''}`:'No saved image');
+const upload=node('button','imageIconButton','');upload.innerHTML=PHOTO_LIBRARY_ICON;upload.type='button';upload.setAttribute('aria-label','Choose photo');upload.title='Choose photo';upload.onclick=()=>imageInput.click();
+const camera=node('button','imageIconButton','');camera.innerHTML=CAMERA_ICON;camera.type='button';camera.setAttribute('aria-label','Take photo');camera.title='Take photo';camera.onclick=()=>cameraInput.click();
+imageButtons.append(upload,camera);imageArea.append(imageButtons,imageInput,cameraInput,savedInfo);
+const removeRow=node('div','imageRemoveRow');const removeBtn=node('button','dangerIcon','');removeBtn.innerHTML=TRASH_ICON;removeBtn.type='button';removeBtn.title='Remove saved image';removeBtn.setAttribute('aria-label','Remove saved image');removeBtn.onclick=()=>{if(!routineConfirm('Remove the saved image when this diecast is saved?'))return;removeMainImage=true;pendingCroppedImage=null;imageInput.value='';cameraInput.value='';savedInfo.textContent='Image marked for removal';removeRow.hidden=true};removeRow.append(removeBtn);removeRow.hidden=!current?.image;imageButtons.append(removeRow);$('fields').append(imageArea);
+function chooseMainImage(f,input){if(!f)return;if(current?.image&&!removeMainImage&&!routineConfirm('Replace image?')){input.value='';return}cropImage(f,blob=>{pendingCroppedImage=blob;removeMainImage=false;savedInfo.textContent=`Selected · ${f.name||'Camera photo'}`;removeRow.hidden=true;imageArea.dataset.filename=f.name||'Camera photo';status('Cropped image ready. Save the diecast to apply.')},()=>{input.value=''})}
+imageInput.addEventListener('change',()=>chooseMainImage(imageInput.files?.[0],imageInput));cameraInput.addEventListener('change',()=>chooseMainImage(cameraInput.files?.[0],cameraInput));
+$('editorForm').dataset.removeImage='false';removeBtn.addEventListener('click',()=>{$('editorForm').dataset.removeImage='true'});
+
+if(current){const copyArea=node('fieldset','copyEditor');copyArea.append(node('legend','','DUPLICATE COPIES'));const count=node('p','',`${qty(current)} physical diecast(s)`);const addCopy=node('button','','+ Add duplicate');addCopy.type='button';addCopy.addEventListener('click',()=>{const fresh={...Object.fromEntries(NAMES.map(k=>[k,current[k]])),priceAcquired:current.priceAcquired??null,priceAcquiredCurrency:current.priceAcquiredCurrency||'PHP',marketValue:current.marketValue??null,marketValueCurrency:current.marketValueCurrency||'PHP',image:current.image||null,id:uid()};const next=records.map(r=>r.id===id?{...r,copies:[...copiesOf(r),fresh]}:r);const old=records;records=next;if(!save())records=old;else{render();$('editor').close();openEditor(id)}});copyArea.append(count,addCopy);copiesOf(current).forEach((c,i)=>{const row=node('div','copyRow');const edit=node('button','',`Edit copy ${i+2}`);edit.type='button';edit.addEventListener('click',()=>openCopyEditor(id,i));const remove=node('button','danger',`Remove ${i+2}`);remove.type='button';remove.addEventListener('click',()=>{if(!routineConfirm(`Delete copy ${i+2}?`))return;const old=records;records=records.map(r=>r.id===id?{...r,copies:copiesOf(r).filter((_,j)=>j!==i)}:r);if(!save())records=old;else{render();$('editor').close();openEditor(id)}});row.append(edit,remove);copyArea.append(row)});$('fields').append(copyArea)}
 $('editor').showModal()}
-$('addBtn').addEventListener('click',()=>$('addMenuDialog').showModal());$('addDiecastChoice').addEventListener('click',()=>{$('addMenuDialog').close();openEditor()});$('addTagChoice').addEventListener('click',()=>{$('addMenuDialog').close();openTagEditor()});$('closeAddMenu').addEventListener('click',()=>$('addMenuDialog').close());$('cancelEdit').addEventListener('click',()=>$('editor').close());$('editorForm').addEventListener('submit',e=>{e.preventDefault();const values=Object.fromEntries(NAMES.map(k=>[k,e.target.elements.namedItem(k).value.trim()]));values.tags=knownTags().filter(t=>[...e.target.querySelectorAll('.tagPickerOption[aria-pressed="true"]')].some(btn=>btn.dataset.tagKey===tagKey(t.label)));
-const old=records;records=editingId?records.map(r=>r.id===editingId?{...r,...values}:r):[...records,{id:uid(),createdAt:new Date().toISOString(),...values}];if(!save()){records=old;return}$('editor').close();status('Diecast saved.');render()});$('search').addEventListener('input',render);
+
+let editingCopyIndex=-1;
+function openCopyEditor(recordId,index){const parent=records.find(r=>r.id===recordId),copy=copiesOf(parent)[index];if(!copy)return;$('editor').close();$('copyForm').replaceChildren();$('copyTitle').textContent=`Edit duplicate ${index+2} · ${parent.model}`;
+for(const key of NAMES){const label=node('label','',key[0].toUpperCase()+key.slice(1));const inp=key==='description'?node('textarea'):node('input');inp.name=key;inp.value=copy[key]??parent[key]??'';label.append(inp);$('copyForm').append(label)}
+for(const key of ['priceAcquired','marketValue']){const label=node('label','',key==='priceAcquired'?'Price acquired':'Market value');const inp=node('input');inp.type='number';inp.min='0';inp.step='0.01';inp.name=key;inp.value=copy[key]??'';label.append(inp);const sel=node('input');sel.type='hidden';sel.name=key+'Currency';sel.value=copy[key+'Currency']||priceSettings.currency;label.append(sel);$('copyForm').append(label)}
+let croppedCopyImage=null;const imgLabel=node('div','copyImageControls');const file=node('input');file.type='file';file.accept='image/*';file.name='copyImage';file.hidden=true;file.addEventListener('change',()=>{const f=file.files?.[0];if(f){if(copy.image&&!routineConfirm('Replace image?')){file.value='';return}cropImage(f,blob=>{croppedCopyImage=blob;status('Cropped duplicate image ready.')},()=>{file.value='';croppedCopyImage=null})}});const pickCopy=node('button','imageIconButton','');pickCopy.innerHTML=PHOTO_LIBRARY_ICON;pickCopy.type='button';pickCopy.title='Choose photo';pickCopy.setAttribute('aria-label','Choose photo');pickCopy.onclick=()=>file.click();const cameraCopy=node('input');cameraCopy.type='file';cameraCopy.accept='image/*';cameraCopy.capture='environment';cameraCopy.hidden=true;const takeCopy=node('button','imageIconButton','');takeCopy.innerHTML=CAMERA_ICON;takeCopy.type='button';takeCopy.title='Take photo';takeCopy.setAttribute('aria-label','Take photo');takeCopy.onclick=()=>cameraCopy.click();cameraCopy.addEventListener('change',()=>{const f=cameraCopy.files?.[0];if(f){if(copy.image&&!routineConfirm('Replace image?')){cameraCopy.value='';return}cropImage(f,blob=>{croppedCopyImage=blob;status('Cropped duplicate image ready.')},()=>{cameraCopy.value='';croppedCopyImage=null})}});imgLabel.append(pickCopy,takeCopy,file,cameraCopy);$('copyForm').append(imgLabel);const remove=node('div','imageRemoveRow');const cb=node('input');cb.type='hidden';cb.name='removeImage';cb.value='false';const removeBtn=node('button','dangerIcon','');removeBtn.innerHTML=TRASH_ICON;removeBtn.type='button';removeBtn.title='Remove saved image';removeBtn.onclick=()=>{if(routineConfirm('Remove saved duplicate image when saved?')){cb.value='true';remove.hidden=true}};remove.append(removeBtn,cb);remove.hidden=!copy.image;$('copyForm').append(remove);
+const actions=node('div','dialogActions');const cancel=node('button','','✕');cancel.title='Cancel';cancel.setAttribute('aria-label','Cancel');cancel.type='button';cancel.addEventListener('click',()=>{$('copyDialog').close();openEditor(recordId)});const saveBtn=node('button','primary','✓');saveBtn.title='Save';saveBtn.setAttribute('aria-label','Save');saveBtn.type='submit';actions.append(cancel,saveBtn);$('copyForm').append(actions);
+$('copyForm').onsubmit=async event=>{event.preventDefault();const form=event.target;const update={...copy};for(const key of NAMES)update[key]=form.elements.namedItem(key).value.trim();for(const key of ['priceAcquired','marketValue']){update[key]=numericPrice(form.elements.namedItem(key).value);update[key+'Currency']=form.elements.namedItem(key+'Currency').value}const f=croppedCopyImage||form.elements.namedItem('copyImage').files?.[0];if(f){if(f.size>2*1024*1024){status('Image exceeds 2 MB.',true);return}update.image=await new Promise(resolve=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.readAsDataURL(f)})}else if(form.elements.namedItem('removeImage').value==='true')update.image=null;
+const old=records;records=records.map(r=>r.id===recordId?{...r,copies:copiesOf(r).map((c,i)=>i===index?update:c)}:r);if(!save())records=old;else{$('copyDialog').close();render();openEditor(recordId)}};$('copyDialog').showModal()}
+function updateValueCounter(){const field=valueDisplayMode==='market'?'marketValue':'priceAcquired';const total=valueTotal(records,field);const counter=$('valueCounter'),toggle=$('valueModeToggle');counter.hidden=!priceSettings.enabled;toggle.hidden=!priceSettings.enabled;counter.replaceChildren();if(priceSettings.enabled){const label=node('span','valueCounterLabel',valueDisplayMode==='market'?'MARKET VALUE:':'ACQUIRED PRICE:');const amount=node('strong','valueCounterAmount',money(total.sum,priceSettings.currency));counter.append(label,amount);if(valueDisplayMode==='market')counter.append(node('strong','valueCounterEstimate','*'));}counter.title=`${total.missing} missing prices, ${total.unconverted} missing exchange rates${valueDisplayMode==='market'?'; * denotes estimated market value':''}`;toggle.title=valueDisplayMode==='market'?'Show acquisition value':'Show market value';toggle.setAttribute('aria-label',toggle.title);toggle.setAttribute('aria-pressed',String(valueDisplayMode==='market'));}
+$('valueModeToggle').addEventListener('click',()=>{valueDisplayMode=valueDisplayMode==='market'?'acquired':'market';try{localStorage.setItem('da-value-display-mode',valueDisplayMode)}catch(_){}updateValueCounter();render()});
+function updatePriceSettingsUI(){$('priceCurrencyLabel').textContent=`${priceSettings.currency} – ${CURRENCIES[priceSettings.currency]} – ${({PHP:'Philippine Peso',USD:'US Dollar',EUR:'Euro',JPY:'Japanese Yen',GBP:'British Pound',CAD:'Canadian Dollar',AUD:'Australian Dollar',SGD:'Singapore Dollar',KRW:'South Korean Won',CNY:'Chinese Yuan'})[priceSettings.currency]}`;$('priceTrackerStatus').textContent=priceSettings.enabled?'ENABLED':'DISABLED';$('priceTrackerStatus').classList.toggle('disabled',!priceSettings.enabled);$('priceEnabled').checked=priceSettings.enabled;updateValueCounter()}
+function openCurrencyDialog(){$('settingsDialog').close();$('currencyCurrent').value=priceSettings.currency;$('currencyTarget').value=priceSettings.currency;$('currencyRate').value='';$('currencyDialog').showModal()}
+$('addBtn').addEventListener('click',()=>$('addMenuDialog').showModal());$('addDiecastChoice').addEventListener('click',()=>{$('addMenuDialog').close();openEditor()});$('addTagChoice').addEventListener('click',()=>{$('addMenuDialog').close();openTagEditor()});$('closeAddMenu').addEventListener('click',()=>$('addMenuDialog').close());$('cancelEdit').addEventListener('click',()=>$('editor').close());$('editorForm').addEventListener('submit',async e=>{e.preventDefault();const values=Object.fromEntries(NAMES.map(k=>[k,e.target.elements.namedItem(k).value.trim()]));for(const key of ['priceAcquired','marketValue']){values[key]=numericPrice(e.target.elements.namedItem(key).value);values[key+'Currency']=e.target.elements.namedItem(key+'Currency').value}const imageFile=pendingCroppedImage||$('diecastImageInput').files?.[0];if(imageFile){if(imageFile.size>2*1024*1024){status('Image exceeds 2 MB. Choose a smaller image.',true);return}values.image=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(Error('Image read failed'));reader.readAsDataURL(imageFile)});values.imageFilename=$('fields').querySelector('.imageEditor')?.dataset.filename||'image'}else if($('editorForm').dataset.removeImage==='true'){values.image=null;values.imageFilename=null;}values.tags=knownTags().filter(t=>[...e.target.querySelectorAll('.tagPickerOption[aria-pressed="true"]')].some(btn=>btn.dataset.tagKey===tagKey(t.label)));
+const old=records;records=editingId?records.map(r=>r.id===editingId?{...r,...values}:r):[...records,{id:uid(),createdAt:new Date().toISOString(),...values}];if(!save()){records=old;return}pendingCroppedImage=null;$('editor').close();status('Diecast saved.');render()});$('search').addEventListener('input',render);
 $('search').addEventListener('keydown',e=>{
  if(e.key!=='Enter'||e.isComposing)return;
  e.preventDefault();addSearchKeyword($('search').value);
@@ -233,10 +297,11 @@ $('bulkAdd').addEventListener('click',()=>openBulkTag('add'));
 $('bulkRemove').addEventListener('click',()=>openBulkTag('remove'));
 $('cancelBulkTag').addEventListener('click',()=>$('bulkTagDialog').close());
 $('confirmBulkTag').addEventListener('click',()=>{const key=$('bulkTagChoice').value,tag=knownTags().find(t=>tagKey(t.label)===key),ids=selectedSet();if(!tag||!ids.size||busy)return;const next=records.map(r=>{if(!ids.has(r.id))return r;const tags=tagsFor(r);return {...r,tags:bulkTagMode==='add'?cleanTags([...tags,tag]):tags.filter(t=>tagKey(t.label)!==key)}});if(updateCatalogue(next,`${bulkTagMode==='add'?'Added':'Removed'} tag for ${ids.size} selected diecast(s).`)){$('bulkTagDialog').close()}});
-$('bulkDelete').addEventListener('click',()=>{if(!archiveEditing||!selectedIds.size)return;$('bulkDeleteMessage').textContent=`Permanently delete ${selectedIds.size} selected diecast(s)?`;$('bulkDeleteText').value='';$('confirmBulkDelete').disabled=true;$('bulkDeleteDialog').showModal()});
-$('bulkDeleteText').addEventListener('input',()=>{$('confirmBulkDelete').disabled=$('bulkDeleteText').value!=='DELETE'});
+function performBulkDelete(){if(busy)return;const ids=selectedSet();if(!ids.size)return;const next=records.filter(r=>!ids.has(r.id));if(updateCatalogue(next,`Deleted ${ids.size} diecast(s).`)){selectedIds.clear();if($('bulkDeleteDialog').open)$('bulkDeleteDialog').close();render()}}
+$('bulkDelete').addEventListener('click',()=>{if(!archiveEditing||!selectedIds.size)return;if(!requireConfirmations){performBulkDelete();return}$('bulkDeleteMessage').textContent=`Permanently delete ${selectedIds.size} selected diecast(s)?`;$('bulkDeleteText').value='';$('confirmBulkDelete').disabled=false;$('bulkDeleteDialog').showModal()});
+$('bulkDeleteText').addEventListener('input',()=>{});
 $('cancelBulkDelete').addEventListener('click',()=>$('bulkDeleteDialog').close());
-$('confirmBulkDelete').addEventListener('click',()=>{if($('bulkDeleteText').value!=='DELETE'||busy)return;const ids=selectedSet();if(!ids.size)return;const next=records.filter(r=>!ids.has(r.id));if(updateCatalogue(next,`Deleted ${ids.size} diecast(s).`)){selectedIds.clear();$('bulkDeleteDialog').close();render()}});
+$('confirmBulkDelete').addEventListener('click',performBulkDelete);
 function tagUsage(key){return tagUsageCounts().get(key)||0}
 function updateMergeSummary(){const src=$('mergeSource').value,dst=$('mergeDestination').value,tag=tagRegistry.find(t=>tagKey(t.label)===src);const valid=!!src&&!!dst&&src!==dst;$('confirmMerge').disabled=!valid;$('mergeSummary').textContent=!valid?'Choose two different tags.':`Merge “${tag.label}” into “${tagRegistry.find(t=>tagKey(t.label)===dst).label}”. ${tagUsage(src)} diecast(s) affected. Source tag will be removed.`}
 $('mergeTagsBtn').addEventListener('click',()=>{if(tagRegistry.length<2){status('Create at least two tags before merging.',true);return}fillTagSelect($('mergeSource'),tagRegistry);fillTagSelect($('mergeDestination'),tagRegistry);$('mergeDestination').selectedIndex=1;updateMergeSummary();$('manageTagsDialog').close();$('mergeTagsDialog').showModal()});
@@ -272,7 +337,7 @@ document.addEventListener('click',event=>{if(!event.target.closest('.sortControl
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!sortMenu.hidden){closeSortMenu();sortButton.focus()}});
 
 try{const savedSort=localStorage.getItem(SORT_KEY);if([...$('catalogueSort').options].some(o=>o.value===savedSort))$('catalogueSort').value=savedSort}catch(_){}
-function signature(r){return NAMES.map(k=>r[k].trim().toLocaleLowerCase()).join('\u0000')}
+function signature(r){return NAMES.map(k=>String(r[k]??'').trim().toLocaleLowerCase()).join('\u0000')}
 $('importNotesBtn').addEventListener('click',()=>{$('notesDialog').showModal()});$('closeNotes').addEventListener('click',()=>$('notesDialog').close());$('notesInput').addEventListener('input',()=>{$('confirmImport').disabled=true;pending=[];$('preview').replaceChildren()});function importCounts(){const existing=new Set(records.map(signature)),seen=new Set();let dup=0;for(const r of pending){const sig=signature(r);if(existing.has(sig)||seen.has(sig))dup++;seen.add(sig)}const skip=document.querySelector('input[name="duplicateMode"]:checked').value==='skip';$('importSummary').textContent=`${skip?pending.length-dup:pending.length} will be imported · ${skip?dup:0} skipped`;return dup}
 document.querySelectorAll('input[name="duplicateMode"]').forEach(el=>el.addEventListener('change',importCounts));
 $('previewBtn').addEventListener('click',()=>{const result=parseNotes($('notesInput').value);pending=result.errors.length?[]:result.parsed;const container=$('preview');container.replaceChildren();$('duplicateOptions').hidden=!pending.length;for(const error of result.errors)container.append(node('p','error',error));if(!result.errors.length){const existing=new Set(records.map(signature)),seen=new Set();let duplicates=0;for(const r of pending){const sig=signature(r);if(existing.has(sig)||seen.has(sig))duplicates++;seen.add(sig);container.append(node('p','',`${r.brand} / ${r.make} / ${r.model} / ${r.color} / ${r.packaging} / ${r.description}`))}container.prepend(node('p','',`${pending.length} valid records · ${duplicates} possible exact duplicates`));importCounts()}$('confirmImport').disabled=!pending.length||!!result.errors.length});
@@ -368,9 +433,91 @@ $('cancelDeleteAll').addEventListener('click',()=>$('deleteAllDialog').close());
 $('confirmDeleteAll').addEventListener('click',()=>{if($('deleteAllText').value!=='DELETE')return;const old=records;records=[];if(!save()){records=old;return}$('deleteAllDialog').close();selectedIds.clear();status(`Deleted ${old.length} diecasts.`);render()});
 
 // View preference is separate from catalogue data and backups.
-document.querySelectorAll('input[name="viewMode"]').forEach(el=>el.addEventListener('change',()=>{if(!el.checked)return;viewMode=el.value==='compact'?'compact':'detailed';applyViewMode();try{localStorage.setItem(VIEW_KEY,viewMode)}catch(_){status('View preference could not be saved on this device.',true)}}));
+document.querySelectorAll('input[name="viewMode"]').forEach(el=>el.addEventListener('change',()=>{if(!el.checked)return;viewMode=el.value==='compact'?'compact':'detailed';applyViewMode();render();try{localStorage.setItem(VIEW_KEY,viewMode)}catch(_){status('View preference could not be saved on this device.',true)}}));
 applyViewMode();
 
 // Settings-only entry into editing mode; the floating Done control exits it.
-$('toggleEditingBtn').addEventListener('click',()=>{if(archiveEditing){setArchiveEditing(false);return;}if(confirm('Would you like to edit your archive?')){setArchiveEditing(true);$('settingsDialog').close();}});
+$('toggleEditingBtn').addEventListener('click',()=>{if(archiveEditing){setArchiveEditing(false);return;}if(routineConfirm('Would you like to edit your archive?'))setArchiveEditing(true);});
 $('doneEditingBtn').addEventListener('click',()=>setArchiveEditing(false));
+
+$('actionConfirmations').addEventListener('change',e=>{const next=e.target.checked;e.target.checked=requireConfirmations;if(!window.confirm(next?'Enable confirmations for routine actions?':'Disable confirmations for routine actions? Delete All and Replace All will still require confirmation.'))return;requireConfirmations=next;try{localStorage.setItem(CONFIRM_KEY,String(next))}catch(_){}syncConfirmUI()});syncConfirmUI();
+$('priceCurrencyBtn').addEventListener('click',openCurrencyDialog);
+$('priceEnabled').addEventListener('change',e=>{const old=priceSettings.enabled;priceSettings.enabled=e.target.checked;if(!priceSave()){priceSettings.enabled=old;e.target.checked=old}updatePriceSettingsUI();render()});
+$('currencyCancel').addEventListener('click',()=>{$('currencyDialog').close();$('settingsDialog').showModal()});
+$('currencyApply').addEventListener('click',()=>{const source=priceSettings.currency,target=$('currencyTarget').value,rate=Number($('currencyRate').value);if(!CURRENCIES[target])return;if(target===source){$('currencyDialog').close();$('settingsDialog').showModal();return}if(!Number.isFinite(rate)||rate<=0){$('currencyError').textContent='Enter a positive exchange rate.';return}const old=JSON.parse(JSON.stringify(priceSettings));priceSettings.rates[`${source}_${target}`]=rate;priceSettings.rates[`${target}_${source}`]=1/rate;for(const code of Object.keys(CURRENCIES)){if(code===source||code===target)continue;const cross=priceSettings.rates[`${code}_${source}`];if(Number.isFinite(cross)&&cross>0){priceSettings.rates[`${code}_${target}`]=cross*rate;priceSettings.rates[`${target}_${code}`]=1/(cross*rate)}}priceSettings.currency=target;if(!priceSave()){priceSettings=old;return}updatePriceSettingsUI();$('currencyDialog').close();$('settingsDialog').showModal();render()});
+updatePriceSettingsUI();
+
+// Cropping adapted from CA v0.4.14.
+function cropImage(file,onDone,onCancel=()=>{}){
+ const img=new Image(),source=URL.createObjectURL(file);
+ img.onload=()=>{
+  URL.revokeObjectURL(source);
+  const shade=document.createElement('div');shade.className='modalShade cropShade';
+  shade.innerHTML=`<div class="modal"><h2>Crop image</h2><div class="cropSurface"><canvas id="cropCanvas"></canvas><div class="cropSelection" id="cropSelection"><i data-corner="tl"></i><i data-corner="tr"></i><i data-corner="bl"></i><i data-corner="br"></i></div></div><div class="row"><button id="cropRotate" title="Rotate image">⟳</button><button id="cropReset" title="Reset crop">↺</button></div><p class="help">Drag a corner to resize. Drag inside the rectangle to move the crop.</p><div class="actions"><button id="cropCancel" title="Cancel">✕</button><button id="cropSave" title="Save crop">✓</button></div></div>`;
+  document.body.append(shade);
+  const canvas=shade.querySelector('canvas'),ctx=canvas.getContext('2d'),sel=shade.querySelector('#cropSelection');
+  let rotation=0,box={x:0,y:0,w:1,h:1},saving=false;
+  const draw=()=>{
+   const rotated=rotation%180!==0,iw=rotated?img.height:img.width,ih=rotated?img.width:img.height;
+   const maxW=Math.min(440,window.innerWidth-68),maxH=Math.min(440,window.innerHeight*.48),scale=Math.min(maxW/iw,maxH/ih,1);
+   canvas.width=Math.max(1,Math.round(iw*scale));canvas.height=Math.max(1,Math.round(ih*scale));
+   ctx.save();ctx.translate(canvas.width/2,canvas.height/2);ctx.rotate(rotation*Math.PI/180);
+   ctx.drawImage(img,-img.width*scale/2,-img.height*scale/2,img.width*scale,img.height*scale);ctx.restore();position();
+  };
+  function position(){sel.style.left=(box.x*100)+'%';sel.style.top=(box.y*100)+'%';sel.style.width=(box.w*100)+'%';sel.style.height=(box.h*100)+'%'}
+  draw();let drag=null;
+  sel.addEventListener('pointerdown',e=>{e.preventDefault();const corner=e.target.dataset.corner||'move';drag={corner,startX:e.clientX,startY:e.clientY,initial:{...box}};sel.setPointerCapture(e.pointerId)});
+  sel.addEventListener('pointermove',e=>{
+   if(!drag)return;
+   const rect=canvas.getBoundingClientRect(),dx=(e.clientX-drag.startX)/rect.width,dy=(e.clientY-drag.startY)/rect.height,b={...drag.initial},min=.07;
+   switch(drag.corner){
+    case'tl':b.x+=dx;b.y+=dy;b.w-=dx;b.h-=dy;break;
+    case'tr':b.y+=dy;b.w+=dx;b.h-=dy;break;
+    case'bl':b.x+=dx;b.w-=dx;b.h+=dy;break;
+    case'br':b.w+=dx;b.h+=dy;break;
+    default:b.x+=dx;b.y+=dy;
+   }
+   b.w=Math.max(min,Math.min(b.w,1));b.h=Math.max(min,Math.min(b.h,1));
+   b.x=Math.max(0,Math.min(b.x,1-b.w));b.y=Math.max(0,Math.min(b.y,1-b.h));
+   box=b;position();
+  });
+  sel.addEventListener('pointerup',()=>drag=null);sel.addEventListener('pointercancel',()=>drag=null);
+  shade.querySelector('#cropRotate').onclick=()=>{rotation=(rotation+90)%360;box={x:0,y:0,w:1,h:1};draw()};
+  shade.querySelector('#cropReset').onclick=()=>{box={x:0,y:0,w:1,h:1};position()};
+  shade.querySelector('#cropCancel').onclick=()=>{onCancel();shade.remove()};
+  shade.querySelector('#cropSave').onclick=async()=>{
+   if(saving)return;saving=true;
+   try{
+    const full=box.x<.00001&&box.y<.00001&&box.w>.99999&&box.h>.99999;
+    const rotated=rotation%180!==0,iw=rotated?img.naturalHeight:img.naturalWidth,ih=rotated?img.naturalWidth:img.naturalHeight;
+    const cropW=Math.max(1,Math.round(iw*box.w)),cropH=Math.max(1,Math.round(ih*box.h));
+    // Balance detail and storage: preserve the crop's original pixels up to
+    // 2000px on its long edge, without ever upscaling or using preview pixels.
+    const scale=Math.min(1,2000/Math.max(cropW,cropH));
+    const out=document.createElement('canvas');
+    out.width=Math.max(1,Math.round(cropW*scale));out.height=Math.max(1,Math.round(cropH*scale));
+    const outctx=out.getContext('2d');if(!outctx)throw Error('Image processing unavailable');
+    outctx.imageSmoothingEnabled=true;outctx.imageSmoothingQuality='high';
+    outctx.scale(out.width/cropW,out.height/cropH);
+    outctx.translate(-Math.round(iw*box.x),-Math.round(ih*box.y));
+    outctx.translate(iw/2,ih/2);outctx.rotate(rotation*Math.PI/180);
+    outctx.drawImage(img,-img.naturalWidth/2,-img.naturalHeight/2);
+    const encode=(type,quality)=>new Promise(resolve=>out.toBlob(resolve,type,quality));
+    const webp=await encode('image/webp',.88);
+    const jpeg=await encode('image/jpeg',.90);
+    const candidates=[webp,jpeg].filter(blob=>blob&&blob.size>0&&(blob.type==='image/webp'||blob.type==='image/jpeg'));
+    if(!candidates.length){const png=await encode('image/png');if(png)candidates.push(png)}
+    if(!candidates.length)throw Error('Image conversion failed');
+    candidates.sort((a,b)=>a.size-b.size);
+    let result=candidates[0];
+    // If nothing changed and the source already fits the resolution budget,
+    // prefer the original bytes whenever encoding provides no size saving.
+    if(full&&rotation===0&&Math.max(iw,ih)<=2000&&file.size<=result.size)result=file;
+    onDone(result);shade.remove();
+   }catch(e){status(e.message||'Image conversion failed',true)}
+   finally{saving=false}
+  };
+ };
+ img.onerror=()=>{URL.revokeObjectURL(source);status('Cannot open image',true)};img.src=source;
+}
+

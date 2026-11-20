@@ -345,3 +345,14 @@ body[data-view="compact"] .compactItemValue{
 .valueCounterRow #valueCounter{gap:5px;white-space:nowrap}
 .valueCounterRow #valueCounter .valueCounterLabel{font-size:inherit;font-weight:normal}
 .valueCounterRow #valueCounter .valueCounterAmount,.valueCounterRow #valueCounter .valueCounterEstimate{font-family:"Courier New",Courier,monospace;font-size:calc(1em + 1px);font-weight:700;font-variant-numeric:tabular-nums}
+
+/* v0.4.0: match Card Archive standalone iOS status-bar clearance. */
+@supports (padding-top: env(safe-area-inset-top)) {
+ @media (display-mode: standalone) { .shell {padding-top:calc(env(safe-area-inset-top, 0px) + 32px)} }
+}
+/* Search clear button stays inside the original toolbar footprint. */
+.toolbar .searchField{position:relative;flex:1 1 auto;min-width:0;display:flex;align-items:center}
+.toolbar .searchField #search{width:100%;min-width:0;flex:1 1 auto;padding-right:42px;-webkit-appearance:none;appearance:none}
+.toolbar .searchField #search::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none}
+.toolbar .searchField #searchClear{position:absolute;right:5px;top:50%;transform:translateY(-50%);width:32px;height:32px;min-width:32px;min-height:32px;padding:0;display:grid;place-items:center;border:0;background:transparent;color:#a3adba;font:20px Arial,sans-serif;z-index:1}
+.toolbar .searchField #searchClear[hidden]{display:none!important}

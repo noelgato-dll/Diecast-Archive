@@ -72,6 +72,18 @@ function validRecord(obj){return obj && typeof obj==='object' && NAMES.every(k=>
 function normalize(obj){return {id:uid(),...Object.fromEntries(NAMES.map(k=>[k,obj[k]])),copies:copiesOf(obj).map(c=>({...c,id:uid()})),image:obj.image||null,priceAcquired:numericPrice(obj.priceAcquired),priceAcquiredCurrency:obj.priceAcquiredCurrency||'PHP',marketValue:numericPrice(obj.marketValue),marketValueCurrency:obj.marketValueCurrency||'PHP',tags:tagsFor(obj),...(typeof obj.createdAt==='string'&&Number.isFinite(Date.parse(obj.createdAt))?{createdAt:obj.createdAt}:{})}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(records));return true}catch(err){status('Unable to save. Storage may be full or disabled.',true);return false}}
 function status(message,error=false){$('status').textContent=message;$('status').className=error?'error':''}
+// Dismiss the previous notification when a user activates any app button.
+// Capture phase ensures an action's own new notification is not accidentally erased.
+document.addEventListener('click',event=>{
+  const button=event.target.closest?.('button, input[type="button"], input[type="submit"], input[type="reset"]');
+  if(!button || button.disabled)return;
+  const banner=document.getElementById('status');
+  if(banner && banner.textContent.trim()){
+    banner.textContent='';
+    banner.className='';
+  }
+},true);
+
 function node(tag,cls,text){const el=document.createElement(tag);if(cls)el.className=cls;if(text!==undefined)el.textContent=text;return el}
 let selectedSearchTags=[];
 let selectedSearchKeywords=[];
@@ -127,7 +139,7 @@ function sortMatches(items){
 }
 function render(){$('searchClear').hidden=!$('search').value;for(const id of selectedIds)if(!records.some(r=>r.id===id))selectedIds.delete(id);selectedSearchTags=selectedSearchTags.filter(k=>knownTags().some(t=>tagKey(t.label)===k));renderSearchFilters();const query=$('search').value.trim().toLocaleLowerCase();const matches=sortMatches(records.filter(r=>recordMatchesSearch(r,query)));const shown=matches.reduce((n,r)=>n+qty(r),0),total=records.reduce((n,r)=>n+qty(r),0);$('count').textContent=`${shown} SHOWN / ${total} TOTAL`;updateValueCounter();updateBulkBar(matches);$('list').replaceChildren();if(!matches.length){$('list').append(node('div','empty',records.length?'NO MATCHES':'NO DIECASTS YET'));return}for(const r of matches){try{const card=node('article','item'),top=node('div','itemTop'),head=node('div');head.append(node('h3','model',r.model||'(Unnamed model)'),node('p','muted',`${r.brand} · ${r.make}`));if(qty(r)>1)head.append(node('span','copyBadge',`×${qty(r)}`));const actions=node('div','itemActions');if(archiveEditing){const select=node('input','bulkCheckbox');select.type='checkbox';select.checked=selectedIds.has(r.id);select.setAttribute('aria-label',`Select ${r.model||'diecast'}`);select.addEventListener('change',()=>{if(select.checked)selectedIds.add(r.id);else selectedIds.delete(r.id);updateBulkBar();card.classList.toggle('bulkSelected',select.checked)});card.append(select);card.classList.toggle('bulkSelected',select.checked)}const edit=node('button','iconButton',''),del=node('button','iconButton','');edit.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4Z"/></svg>';del.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2m3 0-1 14H6L5 6m5 4v7m4-7v7"/></svg>';edit.setAttribute('aria-label',`Edit ${r.model}`);del.setAttribute('aria-label',`Delete ${r.model}`);edit.title='Edit';del.title='Delete';del.classList.add('dangerIcon');edit.type=del.type='button';edit.addEventListener('click',()=>openEditor(r.id));del.addEventListener('click',()=>{if(!routineConfirm(`Delete ${r.model||'this diecast'}?`))return;const old=records;records=records.filter(x=>x.id!==r.id);if(!save())records=old;else{selectedIds.delete(r.id);status('Diecast deleted.');render()}});if(archiveEditing)actions.append(edit,del);top.append(head);if(archiveEditing)card.append(actions);const details=node('div','details');const pricing=node('div','cardPricing');for(const k of (r.image&&viewMode!=='compact'?['packaging','color','description']:NAMES)){const pair=node('div');pair.append(node('span','label',k),node('span','',r[k]||'—'));details.append(pair)}
 if(priceSettings.enabled){for(const [field,title] of [['priceAcquired','PRICE ACQUIRED'],['marketValue','MARKET VALUE']]){const pair=node('div','pricePair');const v=numericPrice(r[field]);const converted=v===null?null:exchange(v,r[field+'Currency']||'PHP');pair.append(node('span','label',title),node('span','',v===null?'—':converted===null?'Rate needed':money(converted,priceSettings.currency)));pricing.append(pair)}}
-if(r.image&&viewMode!=='compact'){card.classList.add('withImage');const photo=node('div','photoColumn');const img=node('img','diecastPhoto');img.src=r.image;img.alt=`${r.model} photograph`;img.loading='lazy';photo.append(img,head);const body=node('div','photoDetails');body.append(details);card.append(photo,body);if(priceSettings.enabled)card.append(pricing);}else {card.append(top,details);if(priceSettings.enabled)card.append(pricing);}
+if(r.image&&viewMode!=='compact'){card.classList.add('withImage');const photo=node('div','photoColumn');const img=node('img','diecastPhoto');img.src=r.image;img.alt=`${r.model} photograph`;img.loading='lazy';img.tabIndex=0;img.setAttribute('role','button');img.title='Open photograph';img.addEventListener('click',()=>openPhotoViewer(r));img.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openPhotoViewer(r)}});photo.append(img,head);const body=node('div','photoDetails');body.append(details);card.append(photo,body);if(priceSettings.enabled)card.append(pricing);}else {card.append(top,details);if(priceSettings.enabled)card.append(pricing);}
 if(viewMode==='compact'&&priceSettings.enabled){
   const field=valueDisplayMode==='market'?'marketValue':'priceAcquired';
   const copies=[r,...copiesOf(r)];let sum=0,missing=0,unconverted=0;
@@ -352,9 +364,10 @@ $('previewBtn').addEventListener('click',()=>{const result=parseNotes($('notesIn
 $('confirmImport').addEventListener('click',()=>{if(!pending.length)return;const keep=document.querySelector('input[name="duplicateMode"]:checked').value==='keep',seen=new Set(records.map(signature));const toAdd=pending.filter(r=>{const sig=signature(r);if(!keep&&seen.has(sig))return false;seen.add(sig);return true});const old=records;records=[...records,...toAdd.map(normalize)];if(!save()){records=old;return}const count=toAdd.length,skipped=pending.length-count;pending=[];$('notesDialog').close();$('notesInput').value='';$('preview').replaceChildren();$('duplicateOptions').hidden=true;$('confirmImport').disabled=true;status(`Imported ${count} diecasts${skipped?`; skipped ${skipped} duplicates`:''}.`);render()});
 // Backups keep format v2 for compatibility, including tag definitions and assigned tags.
 $('exportBtn').addEventListener('click',()=>{
+ const localBackupDate=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
  const data=JSON.stringify({format:'diecast-archive',version:2,exportedAt:new Date().toISOString(),records,tags:tagRegistry},null,2);
  const url=URL.createObjectURL(new Blob([data],{type:'application/json'}));
- const a=document.createElement('a');a.href=url;a.download=`diecast-archive-${new Date().toISOString().slice(0,10)}.json`;
+ const a=document.createElement('a');a.href=url;a.download=`diecast-archive-${localBackupDate()}.json`;
  document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
  status('Backup file prepared. Keep it somewhere safe.');
 });
@@ -529,3 +542,36 @@ function cropImage(file,onDone,onCancel=()=>{}){
  img.onerror=()=>{URL.revokeObjectURL(source);status('Cannot open image',true)};img.src=source;
 }
 
+
+// v0.4.2 — isolated full-screen photograph viewer. Does not alter catalogue records.
+const photoViewer=document.getElementById('photoViewer');
+const viewerImage=document.getElementById('viewerImage');
+const viewerStage=document.getElementById('viewerStage');
+let viewerScale=1, viewerX=0, viewerY=0, viewerPointers=new Map(), viewerPinchDistance=0, viewerPinchScale=1, viewerLastTap=0;
+function paintViewer(){viewerImage.style.transform=`translate(${viewerX}px,${viewerY}px) scale(${viewerScale})`}
+function setViewerZoom(next){viewerScale=Math.max(1,Math.min(5,next));if(viewerScale===1){viewerX=0;viewerY=0}paintViewer()}
+function openPhotoViewer(record){
+ if(!record.image)return;
+ viewerImage.src=record.image;
+ viewerImage.alt=`${record.brand} ${record.make} ${record.model}`;
+ document.getElementById('viewerInfo').textContent=[record.brand,record.make,record.model].filter(Boolean).join(' · ');
+ viewerPointers.clear();viewerX=viewerY=0;setViewerZoom(1);photoViewer.showModal();
+}
+function closePhotoViewer(){photoViewer.close();viewerPointers.clear();viewerImage.removeAttribute('src')}
+document.getElementById('viewerClose').addEventListener('click',closePhotoViewer);
+photoViewer.addEventListener('click',e=>{if(e.target===photoViewer)closePhotoViewer()});
+photoViewer.addEventListener('close',()=>{viewerPointers.clear();viewerImage.removeAttribute('src')});
+viewerStage.addEventListener('dblclick',e=>{e.preventDefault();setViewerZoom(viewerScale>1?1:2.5)});
+viewerStage.addEventListener('pointerdown',e=>{
+ viewerStage.setPointerCapture(e.pointerId);viewerPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ if(viewerPointers.size===2){const p=[...viewerPointers.values()];viewerPinchDistance=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);viewerPinchScale=viewerScale}
+ if(e.pointerType==='touch'&&viewerPointers.size===1){const now=Date.now();if(now-viewerLastTap<320){setViewerZoom(viewerScale>1?1:2.5);viewerLastTap=0}else viewerLastTap=now}
+});
+viewerStage.addEventListener('pointermove',e=>{
+ if(!viewerPointers.has(e.pointerId))return;
+ const prev=viewerPointers.get(e.pointerId);viewerPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+ if(viewerPointers.size===2){const p=[...viewerPointers.values()];const d=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y);if(viewerPinchDistance)setViewerZoom(viewerPinchScale*d/viewerPinchDistance)}
+ else if(viewerScale>1){viewerX+=e.clientX-prev.x;viewerY+=e.clientY-prev.y;paintViewer()}
+});
+for(const eventName of ['pointerup','pointercancel','lostpointercapture'])viewerStage.addEventListener(eventName,e=>{viewerPointers.delete(e.pointerId);if(viewerPointers.size<2)viewerPinchDistance=0});
+viewerStage.addEventListener('wheel',e=>{e.preventDefault();setViewerZoom(viewerScale*(e.deltaY<0?1.12:0.89))},{passive:false});

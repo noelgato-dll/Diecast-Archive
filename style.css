@@ -362,3 +362,14 @@ body[data-view="compact"] .compactItemValue{
 .priceSettingsLine .priceCurrencyCaption{margin:0 0 5px;line-height:1.2}
 .priceSettingsLine .currencyDisplayRow{margin:0}
 .priceSettingsLine .priceToggle{margin-top:15px}
+
+/* v0.4.2: prevent double-tap page zoom, while keeping the photo viewer interactive. */
+body,button,input,textarea,select,.item{touch-action:manipulation}
+.diecastPhoto{cursor:zoom-in}
+.diecastPhoto:focus-visible{outline:2px solid #dce8f7;outline-offset:2px}
+#photoViewer{position:fixed;inset:0;width:100vw;max-width:none;height:100dvh;max-height:none;margin:0;padding:0;border:0;border-radius:0;background:#0b0d10;overflow:hidden}
+#photoViewer::backdrop{background:#000e}
+#viewerStage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+#viewerImage{display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;transform-origin:center center;will-change:transform;pointer-events:none}
+#viewerClose{position:absolute;top:calc(env(safe-area-inset-top,0px) + 16px);left:16px;width:44px;height:44px;min-width:44px;min-height:44px;padding:0;display:grid;place-items:center;background:#242b33e8;border:1px solid #75808b;border-radius:10px;color:white;font-size:23px;z-index:3}
+#viewerInfo{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);left:16px;right:16px;max-width:650px;margin:auto;background:#20262de8;border:1px solid #75808b;border-radius:10px;padding:12px 15px;text-align:center;font-family:"Courier New",Courier,monospace;font-size:14px;overflow-wrap:anywhere;pointer-events:none;z-index:2}

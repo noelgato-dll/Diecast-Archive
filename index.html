@@ -9,12 +9,12 @@
   <link rel="apple-touch-icon" href="icons/icon-180.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="stylesheet" href="style.css?v=0401stable">
-  <script src="script.js?v=0401stable" defer></script>
+  <link rel="stylesheet" href="style.css?v=0402stable-notification-hotfix">
+  <script src="script.js?v=0402stable-notification-hotfix" defer></script>
 </head>
 <body>
   <main class="shell">
-    <header><p class="eyebrow">noelgato-dll / V0.4.1</p><h1>DIECAST ARCHIVE</h1></header>
+    <header><p class="eyebrow">noelgato-dll / V0.4.2</p><h1>DIECAST ARCHIVE</h1></header>
     <div id="searchFilters" class="searchFilters" aria-label="Selected keyword and tag filters"></div><div class="toolbar"><div class="searchField"><input id="search" type="search" placeholder="SEARCH" aria-label="Search diecasts"><button id="searchClear" type="button" aria-label="Clear search" title="Clear search" hidden>✕</button></div><button id="addBtn" class="primary iconButton" type="button" aria-label="Add" title="Add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button><button id="settingsBtn" class="iconButton" type="button" aria-label="Settings" title="Settings">⚙</button></div><div id="tagSearchSuggestions" class="tagSearchSuggestions" hidden aria-label="Matching tag suggestions"></div>
     <input id="backupFile" type="file" accept="application/json,.json" hidden>
     <p id="status" role="status" aria-live="polite"></p>
@@ -46,5 +46,10 @@
   <dialog id="bulkDeleteDialog"><h2>Delete selected</h2><p id="bulkDeleteMessage"></p><label>Type DELETE to confirm<input id="bulkDeleteText" autocomplete="off" placeholder="DELETE"></label><div class="dialogActions"><button id="cancelBulkDelete" type="button" aria-label="Cancel" title="Cancel">✕</button><button id="confirmBulkDelete" class="danger" type="button" disabled>Delete selected</button></div></dialog>
   <dialog id="mergeTagsDialog"><h2>Merge tags</h2><label>Source tag<select id="mergeSource"></select></label><label>Destination tag<select id="mergeDestination"></select></label><p id="mergeSummary"></p><div class="dialogActions"><button id="cancelMerge" type="button" aria-label="Cancel" title="Cancel">✕</button><button id="confirmMerge" class="primary" type="button" aria-label="Merge tags" title="Merge tags">✓</button></div></dialog>
 <dialog id="restoreChoiceDialog"><div class="dialogBody"><h2>Restore backup</h2><p id="restoreSummary"></p><fieldset class="restoreOptions"><legend>Choose how to restore</legend><label><input type="radio" name="restoreMode" value="add" checked> <strong>Add All</strong><small>Keep your current diecasts and add every entry in this backup, including duplicates.</small></label><label><input type="radio" name="restoreMode" value="replace"> <strong>Replace All</strong><small>Replace all current diecasts and tags with this backup.</small></label></fieldset><p id="restoreOutcome" aria-live="polite"></p><p class="muted">Export a backup first. Restore changes cannot be undone.</p><div class="dialogActions"><button id="cancelRestore" type="button" aria-label="Cancel" title="Cancel">✕</button><button id="confirmRestore" class="primary" type="button">Add all</button></div></div></dialog>
+<dialog id="photoViewer" aria-label="Diecast photograph viewer">
+  <div id="viewerStage"><img id="viewerImage" alt=""></div>
+  <button id="viewerClose" type="button" aria-label="Close photograph" title="Close">✕</button>
+  <div id="viewerInfo" aria-label="Brand, make and model"></div>
+</dialog>
 </body>
 </html>

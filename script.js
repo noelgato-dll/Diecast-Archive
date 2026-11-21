@@ -585,3 +585,50 @@ viewerStage.addEventListener('pointermove',e=>{
 });
 for(const eventName of ['pointerup','pointercancel','lostpointercapture'])viewerStage.addEventListener(eventName,e=>{viewerPointers.delete(e.pointerId);if(viewerPointers.size<2)viewerPinchDistance=0});
 viewerStage.addEventListener('wheel',e=>{e.preventDefault();setViewerZoom(viewerScale*(e.deltaY<0?1.12:0.89))},{passive:false});
+
+
+// Stable release activation verifier. Keep this release key unchanged in v0.4.4 hotfixes.
+const ACTIVATION_RELEASE='v0.4.4-stable';
+const ACTIVATION_SALT='9fc32e0bb3f2142981ba4760fe36ab61';
+const ACTIVATION_VERIFIER='926fd0790654e5592bfdaa730e81e4d425a8c8a79d7b83616741d9819ddf806b';
+const ACTIVATION_KEY='diecast-archive-activation-'+ACTIVATION_RELEASE;
+function activationState(){try{return localStorage.getItem(ACTIVATION_KEY)}catch(_){return null}}
+function setActivationState(state){try{localStorage.setItem(ACTIVATION_KEY,state);return true}catch(_){return false}}
+function refreshActivationSettings(){
+ const removed=activationState()==='removed';
+ document.getElementById('activationRemoveRow').hidden=removed;
+ document.getElementById('activationHelp').hidden=removed;
+ document.getElementById('activationRemovedText').hidden=!removed;
+ document.getElementById('activationRemove').checked=false;
+}
+async function activationDigest(password){
+ const salt=Uint8Array.from(ACTIVATION_SALT.match(/../g).map(v=>parseInt(v,16)));
+ const pw=new TextEncoder().encode(password);
+ const input=new Uint8Array(salt.length+pw.length);input.set(salt);input.set(pw,salt.length);
+ const digest=await crypto.subtle.digest('SHA-256',input);
+ return Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,'0')).join('');
+}
+function initializeActivation(){
+ refreshActivationSettings();
+ const gate=document.getElementById('activationDialog');
+ if(activationState()!=='activated'&&activationState()!=='removed')gate.showModal();
+ document.getElementById('activationForm').addEventListener('submit',async e=>{
+   e.preventDefault();
+   const input=document.getElementById('activationPassword');
+   const error=document.getElementById('activationError');
+   error.textContent='';
+   try{
+     const match=await activationDigest(input.value)===ACTIVATION_VERIFIER;
+     if(!match){error.textContent='Incorrect activation password.';return}
+     if(!setActivationState('activated')){error.textContent='Unable to store activation. Check browser storage.';return}
+     input.value='';gate.close();refreshActivationSettings();
+   }catch(_){error.textContent='Activation verification is unavailable.'}
+ });
+ gate.addEventListener('cancel',e=>e.preventDefault());
+ document.getElementById('activationRemove').addEventListener('change',e=>{
+   if(!e.target.checked)return;
+   if(!setActivationState('removed')){e.target.checked=false;return}
+   refreshActivationSettings();
+ });
+}
+initializeActivation();

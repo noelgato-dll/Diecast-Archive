@@ -396,3 +396,28 @@ body[data-view="compact"] .itemScale{display:none}
 dialog.cropShade{position:fixed;inset:0;margin:0;width:100vw;max-width:none;height:100dvh;max-height:none;border:0;border-radius:0;box-sizing:border-box;color:inherit;overflow:auto}
 dialog.cropShade::backdrop{background:#000c}
 dialog.cropShade .modal{margin:auto;flex-shrink:0}
+
+/* Activation DEV: reuse the Price & Value switch and section visuals. */
+#activationSettings .priceToggle{margin-top:12px}
+#activationSettings [hidden]{display:none!important}
+#activationDialog{width:min(390px,calc(100vw - 30px));max-width:390px}
+#activationDialog .activationBody{padding:0}
+#activationDialog .activationBody form{display:grid;gap:14px}
+#activationDialog .activationBody input{width:100%;box-sizing:border-box}
+#activationDialog .activationBody button{width:100%}
+#activationDialog::backdrop{background:rgba(0,0,0,.88)}
+
+/* Phase 3: activation visual parity with Card Archive v0.4.15 supplied reference. */
+#activationDialog{width:min(410px,calc(100vw - 40px));max-width:410px;box-sizing:border-box;border:1px solid #44505d;border-radius:14px;background:#202831;color:#f2f5f7;padding:24px;box-shadow:0 20px 80px #0009;font-family:"Courier New",Courier,monospace;max-height:calc(100dvh - 40px);overflow:auto}
+#activationDialog .activationBody{padding:0;background:transparent;border:0;box-shadow:none;color:inherit;font-family:inherit}
+#activationDialog .activationBrand{font-size:12px;letter-spacing:.09em;opacity:.8;line-height:1.5}
+#activationDialog .activationAuthor{display:block;margin-top:5px;letter-spacing:normal;font-size:12px;opacity:.75}
+#activationDialog h2{margin:18px 0 8px;font-size:21px;font-weight:bold;line-height:1.25;color:#f2f5f7}
+#activationDialog p{font-size:13px;line-height:1.5;color:#f2f5f7}
+#activationDialog .activationBody>p{margin:13px 0 0}
+#activationDialog #activationForm{display:block;margin:0}
+#activationDialog #activationPassword{display:block;box-sizing:border-box;width:100%;margin:22px 0 0;padding:12px;height:44px;border:1px solid #718091;border-radius:8px;background:#111820;color:#fff;font:inherit}
+#activationDialog #activationError{min-height:1.2em;margin:13px 0 0;color:#ff9e9e}
+#activationDialog #activationForm button{display:block;box-sizing:border-box;margin-top:14px;width:100%;padding:12px;min-height:41px;border-radius:8px;border:0;background:#dce7f1;color:#18202b;font-family:inherit;font-size:13px;font-weight:bold;cursor:pointer}
+#activationDialog #activationForm button:disabled{opacity:.6}
+#activationDialog::backdrop{background:#11161df5}

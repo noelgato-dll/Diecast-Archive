@@ -373,3 +373,26 @@ body,button,input,textarea,select,.item{touch-action:manipulation}
 #viewerImage{display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;transform-origin:center center;will-change:transform;pointer-events:none}
 #viewerClose{position:absolute;top:calc(env(safe-area-inset-top,0px) + 16px);left:16px;width:44px;height:44px;min-width:44px;min-height:44px;padding:0;display:grid;place-items:center;background:#242b33e8;border:1px solid #75808b;border-radius:10px;color:white;font-size:23px;z-index:3}
 #viewerInfo{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);left:16px;right:16px;max-width:650px;margin:auto;background:#20262de8;border:1px solid #75808b;border-radius:10px;padding:12px 15px;text-align:center;font-family:"Courier New",Courier,monospace;font-size:14px;overflow-wrap:anywhere;pointer-events:none;z-index:2}
+
+/* v0.4.3 DEV Phase 1 */
+#editorForm .priceFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#editorForm .priceFields legend{grid-column:1/-1}
+#editorForm .priceFields .priceInputRow{display:block;min-width:0}
+#editorForm .priceFields .priceInputRow label{display:block;min-width:0;margin:0;font-size:.85rem}
+#editorForm .priceFields .priceInputRow input{display:block;width:100%;min-width:0;margin-top:5px}
+#editorForm .copyEditor{border:1px solid #48515d;border-radius:10px;margin:12px 0;padding:12px;min-width:0}
+#editorForm .copyEditor legend{font-family:'Courier New',Courier,monospace;font-size:.8rem;font-weight:normal;padding:0 4px}
+.copyHeader{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.copyHeader p{margin:0}
+.copyHeader .imageIconButton{flex:0 0 44px;font-size:24px}
+.scaleInputRow{display:flex;align-items:center;gap:8px;margin-top:5px}
+.scalePrefix{padding:10px 12px;border:1px solid #48515d;border-radius:8px;background:#242b33;font-family:'Courier New',Courier,monospace}
+.scaleInputRow input{flex:1;min-width:0;margin:0!important}
+.itemScale{position:absolute;top:10px;right:12px;z-index:1;font-family:'Courier New',Courier,monospace;font-weight:bold;color:#f3f5f8;pointer-events:none}
+.item.withImage .photoDetails{padding-right:45px}
+body[data-view="compact"] .itemScale{display:none}
+
+/* Phase 2: native top-layer crop dialog, compatible with nested editor dialogs in iOS PWA. */
+dialog.cropShade{position:fixed;inset:0;margin:0;width:100vw;max-width:none;height:100dvh;max-height:none;border:0;border-radius:0;box-sizing:border-box;color:inherit;overflow:auto}
+dialog.cropShade::backdrop{background:#000c}
+dialog.cropShade .modal{margin:auto;flex-shrink:0}

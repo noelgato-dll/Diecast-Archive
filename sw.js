@@ -1,5 +1,5 @@
 // Copyright © 2026 noelgato-dll. All rights reserved.
-const CACHE='diecast-archive-shell-v0405-dev-phase3';
+const CACHE='diecast-archive-shell-v0405-stable';
 const FILES=['./index.html','./style.css','./activation.js','./script.enc.json','./manifest.webmanifest','./icons/icon-180.png','./icons/icon-192.png','./icons/icon-512.png'];
 self.addEventListener('install', event => {
   // Cache all essential assets atomically. Do not activate an incomplete build.

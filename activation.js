@@ -16,7 +16,7 @@
  */
 'use strict';
 
-const DA_LOCK_RELEASE = '0.4.6-dev-phase1';
+const DA_LOCK_RELEASE = '0.4.6-dev-phase2';
 const DA_UNLOCK_SESSION_KEY = 'diecast-archive-permanent-key-v2-' + DA_LOCK_RELEASE; // IndexedDB-held key handle, NOT a boolean
 const DA_ENC_MANIFEST_URL = './script.enc.json';
 
@@ -131,7 +131,7 @@ async function daTryStoredKey(manifest) {
 function daLockScreen(manifest) {
   const root = document.getElementById('daActivationRoot');
   if (!root) return;
-  root.innerHTML = `<div class="daActivationDialog" role="dialog" aria-modal="true" aria-labelledby="daActivationHeading"><div class="daActivationBrand">DIECAST ARCHIVE / V0.4.6 DEV · PHASE 1<span class="daActivationAuthor">noelgato-dll</span></div><h2 id="daActivationHeading">Activation Required</h2><p>Enter the password for this stable release.</p><form id="daActivationForm"><input aria-label="Release password" id="daActivationPassword" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" required maxlength="64" /><p id="daActivationError" role="alert" aria-live="polite"></p><button type="submit">Confirm</button></form></div>`;
+  root.innerHTML = `<div class="daActivationDialog" role="dialog" aria-modal="true" aria-labelledby="daActivationHeading"><div class="daActivationBrand">DIECAST ARCHIVE / V0.4.6 DEV · PHASE 2<span class="daActivationAuthor">noelgato-dll</span></div><h2 id="daActivationHeading">Activation Required</h2><p>Enter the password for this stable release.</p><form id="daActivationForm"><input aria-label="Release password" id="daActivationPassword" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" required maxlength="64" /><p id="daActivationError" role="alert" aria-live="polite"></p><button type="submit">Confirm</button></form></div>`;
   const input = document.getElementById('daActivationPassword');
   input.focus();
   document.getElementById('daActivationForm').onsubmit = async e => {

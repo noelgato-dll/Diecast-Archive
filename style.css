@@ -464,3 +464,13 @@ dialog.cropShade .modal{margin:auto;flex-shrink:0}
 .activationToggle input:checked+.activationSwitch{background:#69ad42}
 .activationToggle input:checked+.activationSwitch:after{transform:translateX(18px)}
 .activationToggle input:focus-visible+.activationSwitch{outline:2px solid #dce7f1;outline-offset:3px}
+
+/* DA v0.4.6 DEV Phase 2 — three-column Data Management */
+.settingsActions.dataManagementActions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.settingsActions.dataManagementActions .dataManagementButton{min-width:0;min-height:125px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:8px;padding:13px 5px 10px;text-align:center;white-space:normal;overflow-wrap:anywhere}
+.dataManagementButton svg{width:23px;height:23px;flex:none}
+.dataManagementButton strong{font-size:clamp(9px,2.7vw,12px);line-height:1.3;font-weight:700}
+.dataManagementButton small{font-size:clamp(8px,2.35vw,10px);line-height:1.45;color:#a7bdd0;font-weight:normal}
+.dataManagementReminder{display:flex;align-items:center;gap:12px;margin-top:10px;padding:12px;border:1px solid #485563;border-radius:9px;font-size:11px;line-height:1.5}
+.dataManagementReminder>span:first-child{font-size:21px;flex:none}
+.dataManagementReminder strong{color:#78b853}

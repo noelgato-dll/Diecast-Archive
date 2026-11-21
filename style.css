@@ -421,3 +421,46 @@ dialog.cropShade .modal{margin:auto;flex-shrink:0}
 #activationDialog #activationForm button{display:block;box-sizing:border-box;margin-top:14px;width:100%;padding:12px;min-height:41px;border-radius:8px;border:0;background:#dce7f1;color:#18202b;font-family:inherit;font-size:13px;font-weight:bold;cursor:pointer}
 #activationDialog #activationForm button:disabled{opacity:.6}
 #activationDialog::backdrop{background:#11161df5}
+
+.daActivationRoot:not(:empty){position:fixed;inset:0;z-index:2147483647;background:#11161df5;display:flex;align-items:center;justify-content:center;padding:20px;overscroll-behavior:contain}
+.daActivationDialog{width:min(100%,410px);box-sizing:border-box;border:1px solid #44505d;border-radius:14px;background:#202831;color:#f2f5f7;padding:24px;box-shadow:0 20px 80px #0009;font-family:inherit}
+.daActivationBrand{font-size:12px;letter-spacing:.09em;opacity:.8}.daActivationDialog h2{margin:18px 0 8px;font-size:21px}.daActivationDialog p{font-size:13px;line-height:1.5}.daActivationDialog label{display:block;margin:20px 0 8px;font-size:13px}.daActivationDialog input{display:block;box-sizing:border-box;width:100%;padding:12px;border:1px solid #718091;border-radius:8px;background:#111820;color:#fff;font:inherit}.daActivationDialog button{margin-top:14px;width:100%;padding:12px;border-radius:8px;border:0;background:#dce7f1;color:#18202b;font-weight:bold;cursor:pointer}.daActivationDialog button:disabled{opacity:.6}#daActivationError{min-height:1.2em;color:#ff9e9e}
+
+/* v0.4.15 activation dialog refinement. */
+.daActivationAuthor{display:block;margin-top:5px;letter-spacing:normal;font-size:12px;opacity:.75}
+.daActivationDialog #daActivationForm>input{margin-top:22px}
+
+/* v0.4.16 DEV: explicit activation Confirm button border, consistent with CA controls. */
+.daActivationDialog #daActivationForm > button[type="submit"] {
+  display:block;
+  box-sizing:border-box;
+  width:100%;
+  min-height:44px;
+  margin-top:14px;
+  padding:12px 16px;
+  border:1px solid #718091;
+  border-radius:8px;
+  background:#dce7f1;
+  color:#18202b;
+  font:700 14px 'Courier New',Courier,monospace;
+  text-align:center;
+  cursor:pointer;
+  appearance:none;
+}
+.daActivationDialog #daActivationForm > button[type="submit"]:focus-visible {
+  outline:2px solid #e8eef7;
+  outline-offset:2px;
+}
+
+/* CA v0.4.16-style Activation Settings switch for DA. */
+#activationSettings [hidden]{display:none!important}
+.activationToggle{display:flex;align-items:center;justify-content:space-between;gap:12px;position:relative;padding:10px 0;cursor:pointer}
+.activationToggleHeading{display:flex;flex-direction:column;gap:3px}
+.activationStatus{font-size:12px;font-weight:bold}
+.activationStatus.isEnabled{color:#83c966}.activationStatus.isDisabled{color:#c4cbd2}
+.activationToggle input{position:absolute;opacity:0;width:1px;height:1px}
+.activationSwitch{width:44px;height:26px;border-radius:15px;background:#6d7681;position:relative;flex-shrink:0;transition:background .15s}
+.activationSwitch:after{content:'';position:absolute;width:20px;height:20px;left:3px;top:3px;border-radius:50%;background:#f6f8fa;transition:transform .15s}
+.activationToggle input:checked+.activationSwitch{background:#69ad42}
+.activationToggle input:checked+.activationSwitch:after{transform:translateX(18px)}
+.activationToggle input:focus-visible+.activationSwitch{outline:2px solid #dce7f1;outline-offset:3px}

@@ -16,7 +16,7 @@
  */
 'use strict';
 
-const DA_LOCK_RELEASE = '0.4.5-dev-phase2';
+const DA_LOCK_RELEASE = '0.4.5-dev-phase3';
 const DA_UNLOCK_SESSION_KEY = 'diecast-archive-permanent-key-v2-' + DA_LOCK_RELEASE; // IndexedDB-held key handle, NOT a boolean
 const DA_ENC_MANIFEST_URL = './script.enc.json';
 
@@ -131,7 +131,7 @@ async function daTryStoredKey(manifest) {
 function daLockScreen(manifest) {
   const root = document.getElementById('daActivationRoot');
   if (!root) return;
-  root.innerHTML = `<div class="daActivationDialog" role="dialog" aria-modal="true" aria-labelledby="daActivationHeading"><div class="daActivationBrand">DIECAST ARCHIVE / V0.4.5 DEV · PHASE 2<span class="daActivationAuthor">noelgato-dll</span></div><h2 id="daActivationHeading">Activation Required</h2><p>Enter the password for this stable release.</p><form id="daActivationForm"><input aria-label="Release password" id="daActivationPassword" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" required maxlength="64" /><p id="daActivationError" role="alert" aria-live="polite"></p><button type="submit">Confirm</button></form></div>`;
+  root.innerHTML = `<div class="daActivationDialog" role="dialog" aria-modal="true" aria-labelledby="daActivationHeading"><div class="daActivationBrand">DIECAST ARCHIVE / V0.4.5 DEV · PHASE 3<span class="daActivationAuthor">noelgato-dll</span></div><h2 id="daActivationHeading">Activation Required</h2><p>Enter the password for this stable release.</p><form id="daActivationForm"><input aria-label="Release password" id="daActivationPassword" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" required maxlength="64" /><p id="daActivationError" role="alert" aria-live="polite"></p><button type="submit">Confirm</button></form></div>`;
   const input = document.getElementById('daActivationPassword');
   input.focus();
   document.getElementById('daActivationForm').onsubmit = async e => {
@@ -163,17 +163,18 @@ function daLockScreen(manifest) {
     return;
   }
   try {
-    // Prefer the versioned app-shell cache when offline. The previous
-    // query-string URL did not match the pre-cached ./script.enc.json.
-    // Online loads remain network-first to pick up deployments.
-    let response;
-    try {
-      response = await fetch(DA_ENC_MANIFEST_URL, { cache: 'no-cache' });
+    // Read the encrypted payload from the *same cache* that installed the
+    // shell. Do not assume a network response or an exact cache name.
+    // This supports pre-activation offline startup as well as remembered keys.
+    const assetURL = new URL(DA_ENC_MANIFEST_URL, document.baseURI).href;
+    let response = await caches.match(assetURL, { ignoreSearch: true });
+    if (!response) {
+      response = await fetch(assetURL, { cache: 'no-store' });
       if (!response.ok) throw new Error('Encrypted package HTTP ' + response.status);
-    } catch (networkError) {
-      const shell = await caches.open('diecast-archive-shell-v0405-dev-phase2');
-      response = await shell.match(DA_ENC_MANIFEST_URL, { ignoreSearch: true });
-      if (!response) throw networkError;
+      // Explicitly persist payload even when a previous service worker is
+      // controlling this tab; wait for cache write before showing activation.
+      const cache = await caches.open('diecast-archive-shell-v0405-dev-phase3');
+      await cache.put(assetURL, response.clone());
     }
     manifest = await response.json();
     if (!manifest || !manifest.salt || !manifest.iv || !manifest.ciphertext || !Number.isInteger(manifest.iterations)) {

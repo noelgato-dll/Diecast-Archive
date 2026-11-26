@@ -1,6 +1,6 @@
 // Copyright © 2026 noelgato-dll. All rights reserved.
-const CACHE='diecast-archive-shell-v0406-stable';
-const FILES=['./index.html','./style.css','./activation.js','./script.enc.json','./manifest.webmanifest','./icons/icon-180.png','./icons/icon-192.png','./icons/icon-512.png'];
+const CACHE='diecast-archive-shell-v0407-dev-phase1';
+const FILES=['./index.html','./style.css','./activation.js','./script.enc.0407dev1.json','./manifest.webmanifest','./icons/icon-180.png','./icons/icon-192.png','./icons/icon-512.png'];
 self.addEventListener('install', event => {
   // Cache all essential assets atomically. Do not activate an incomplete build.
   event.waitUntil((async () => {
@@ -37,7 +37,7 @@ self.addEventListener('fetch', event => {
     const url=new URL(req.url);
     // Immutable release assets must be served as a coherent version from
     // cache, even when iOS is offline or the PWA starts after a restart.
-    if (/\/(?:activation\.js|script\.enc\.json|style\.css)$/.test(url.pathname)) {
+    if (/\/(?:activation\.js|script\.enc(?:\.0407dev1)?\.json|style\.css)$/.test(url.pathname)) {
       const hit=await cache.match(req,{ignoreSearch:true});
       if(hit)return hit;
     }

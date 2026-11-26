@@ -16,9 +16,9 @@
  */
 'use strict';
 
-const DA_LOCK_RELEASE = '0.4.7-dev-phase1';
+const DA_LOCK_RELEASE = '0.4.7-stable';
 const DA_UNLOCK_SESSION_KEY = 'diecast-archive-permanent-key-v2-' + DA_LOCK_RELEASE; // IndexedDB-held key handle, NOT a boolean
-const DA_ENC_MANIFEST_URL = './script.enc.0407dev1.json';
+const DA_ENC_MANIFEST_URL = './script.enc.0407stable.json';
 
 function daFail(root, message) {
   const err = document.getElementById('daActivationError');
@@ -131,7 +131,7 @@ async function daTryStoredKey(manifest) {
 function daLockScreen(manifest) {
   const root = document.getElementById('daActivationRoot');
   if (!root) return;
-  root.innerHTML = `<div class="daActivationDialog" role="dialog" aria-modal="true" aria-labelledby="daActivationHeading"><div class="daActivationBrand">DIECAST ARCHIVE / V0.4.7 DEV · PHASE 1<span class="daActivationAuthor">noelgato-dll</span></div><h2 id="daActivationHeading">Activation Required</h2><p>Enter the password for this DEV release.</p><form id="daActivationForm"><input aria-label="Release password" id="daActivationPassword" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" required maxlength="64" /><p id="daActivationError" role="alert" aria-live="polite"></p><button type="submit">Confirm</button></form></div>`;
+  root.innerHTML = `<div class="daActivationDialog" role="dialog" aria-modal="true" aria-labelledby="daActivationHeading"><div class="daActivationBrand">DIECAST ARCHIVE / V0.4.7<span class="daActivationAuthor">noelgato-dll</span></div><h2 id="daActivationHeading">Activation Required</h2><p>Enter the password for this stable release.</p><form id="daActivationForm"><input aria-label="Release password" id="daActivationPassword" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" required maxlength="64" /><p id="daActivationError" role="alert" aria-live="polite"></p><button type="submit">Confirm</button></form></div>`;
   const input = document.getElementById('daActivationPassword');
   input.focus();
   document.getElementById('daActivationForm').onsubmit = async e => {
@@ -167,7 +167,7 @@ function daLockScreen(manifest) {
     // shell. Do not assume a network response or an exact cache name.
     // This supports pre-activation offline startup as well as remembered keys.
     const assetURL = new URL(DA_ENC_MANIFEST_URL, document.baseURI).href;
-    const stableCache = await caches.open('diecast-archive-shell-v0407-dev-phase1');
+    const stableCache = await caches.open('diecast-archive-shell-v0407-stable');
     let response = await stableCache.match(assetURL, { ignoreSearch: true });
     if (!response) {
       response = await fetch(assetURL, { cache: 'no-store' });
@@ -184,7 +184,7 @@ function daLockScreen(manifest) {
     console.error('Diecast Archive encrypted package failed to load:', e);
     daFail(document.getElementById('daActivationRoot'), navigator.onLine === false
       ? 'Encrypted release package is unavailable offline. Connect once to finish installing this release.'
-      : 'Could not load the encrypted release package. Check the deployed script.enc.json file and reload.');
+      : 'Could not load the encrypted release package. Check the deployed script.enc.0407stable.json file and reload.');
     return;
   }
   const alreadyRunning = await daTryStoredKey(manifest);
